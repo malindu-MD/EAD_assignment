@@ -1,0 +1,14 @@
+[{
+  "_id": {
+    "$oid": "66ffa1d5dc894cda15f6ec79"
+  },
+  "productListId": {
+    "$oid": "66fecf5d58a48af57c210db1"
+  },
+  "name": "Sample Product",
+  "description": "This is a sample product description.",
+  "unitPrice": 20,
+  "totalAmount": 11,
+  "vendorName": "testVendor",
+  "imageLink": "http://example.com/image.jpg"
+}]
