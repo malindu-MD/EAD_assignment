@@ -1,0 +1,71 @@
+## Login
+
+{
+  "userName": "testAdmin",
+  "credential": "test"
+}
+
+{
+  "userName": "testVendor",
+  "credential": "test"
+}
+
+## Data
+
+{
+  "visibleName": "Category",
+  "description": "This is a sample description."
+}
+
+{
+  "nic": "200045123978",
+  "email": "testAdmin@mail.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "userName": "testAdmin",
+  "address": "123 Main St, Anytown, Colombo",
+  "credential": "test",
+  "userType": "Admin",
+  "isActive": true,
+  "isLoggedIn": false
+}
+
+{
+  "nic": "200045123978",
+  "email": "testVendor@mail.com",
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "userName": "testVendor",
+  "address": "123 Main St, Anytown, Colombo",
+  "credential": "test",
+  "userType": "Vendor",
+  "isActive": true,
+  "isLoggedIn": false
+}
+
+{
+  "nic": "100045123978",
+  "email": "testcsr@mail.com",
+  "firstName": "Joseph",
+  "lastName": "Doe",
+  "userName": "testCSR",
+  "address": "123 Main St, Anytown, Colombo",
+  "credential": "test",
+  "userType": "CSR",
+  "isActive": true,
+  "isLoggedIn": false
+}
+
+{
+  "productListId": {
+	"$oid": "66fecf5d58a48af57c210db1"
+  },
+  "name": "Sample Product",
+  "description": "This is a sample product description.",
+  "unitPrice": 20.00,
+  "totalAmount": 0,
+  "vendorId": {
+	"$oid": "66ff057658a48af57c210dbb")
+   },
+  "imgLink": "http://example.com/image.jpg"
+}
