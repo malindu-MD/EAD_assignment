@@ -1,0 +1,45 @@
+[{
+  "_id": {
+    "$oid": "66fefe2158a48af57c210db8"
+  },
+  "nic": "200045123978",
+  "email": "testAdmin@mail.com",
+  "firstName": "John",
+  "lastName": "Doe",
+  "userName": "testAdmin",
+  "credential": "test",
+  "userType": "Admin",
+  "isActive": "true",
+  "isLoggedIn": "false",
+  "address": "123 Main St, Anytown, Colombo"
+},
+{
+  "_id": {
+    "$oid": "66ff057658a48af57c210dbb"
+  },
+  "nic": "200044113377",
+  "email": "testVendor@mail.com",
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "userName": "testVendor",
+  "address": "143 Main St, Sometown, Colombo",
+  "credential": "test",
+  "userType": "Vendor",
+  "isActive": "true",
+  "isLoggedIn": "true"
+},
+{
+  "_id": {
+    "$oid": "66ffae44dc894cda15f6ec7f"
+  },
+  "nic": "100045123978",
+  "email": "test.csr@mail.com",
+  "firstName": "Joseph",
+  "lastName": "Doe",
+  "userName": "testCSR",
+  "address": "123 Main St, Anytown, Colombo",
+  "credential": "test",
+  "userType": "CSR",
+  "isActive": true,
+  "isLoggedIn": false
+}]

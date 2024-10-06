@@ -1,0 +1,7 @@
+[{
+  "_id": {
+    "$oid": "66fecf5d58a48af57c210db1"
+  },
+  "description": "This is a sample description.",
+  "visibleName": "Category"
+}]
