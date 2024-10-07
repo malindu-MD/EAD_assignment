@@ -25,7 +25,7 @@ import { useSelector } from "react-redux";
 
 const { Header, Sider, Content } = Layout;
 
-const MainLayout = () => {
+const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   const {
@@ -61,114 +61,55 @@ const MainLayout = () => {
             {
               key: "",
               icon: <AiOutlineDashboard className="fs-4" />,
-              label: "Dashboard",
-            },
-            {
-              key: "customers",
-              icon: <CgUserList className="fs-4" />,
-              label: "Customers",
+              label: "Admin Dashboard",
             },
             {
               key: "catalog",
-              icon: <AiOutlineAppstoreAdd className="fs-4" />,
-              label: "Catalog",
+              icon: <CgUserList className="fs-4" />,
+              label: "Vendors",
               children: [
                 {
                   key: "product",
                   icon: <AiOutlineAppstoreAdd className="fs-4" />,
-                  label: "Add Product",
+                  label: "Add Vendor",
                 },
                 {
                   key: "product-list",
                   icon: <AiOutlineUnorderedList className="fs-4" />,
-                  label: "Product-list",
+                  label: "Vendor List",
                 },
-                {
-                  key: "brand",
-                  icon: <SiBrandfolder className="fs-4" />,
-                  label: "Brand",
-                },
-                {
-                  key: "brand-list",
-                  icon: <AiOutlineUnorderedList className="fs-4" />,
-                  label: "Brand List",
-                },
-                {
-                  key: "category",
-                  icon: <BiCategoryAlt className="fs-4" />,
-                  label: "Category",
-                },
-                {
-                  key: "category-list",
-                  icon: <AiOutlineUnorderedList className="fs-4" />,
-                  label: "Category List",
-                },
-                {
-                  key: "color",
-                  icon: <MdOutlineColorLens className="fs-4" />,
-                  label: "Color",
-                },
-                {
-                  key: "color-list",
-                  icon: <AiOutlineUnorderedList className="fs-4" />,
-                  label: "Color List",
-                },
+                
               ],
             },
             {
+                key: "catalog",
+                icon: <BiCategoryAlt className="fs-4" />,
+                label: "Category",
+                children: [
+                  {
+                    key: "product",
+                    icon: <AiOutlineAppstoreAdd className="fs-4" />,
+                    label: "Add Category",
+                  },
+                  {
+                    key: "product-list",
+                    icon: <AiOutlineUnorderedList className="fs-4" />,
+                    label: "Category List",
+                  },
+                 
+                ],
+              },
+            {
               key: "orders",
               icon: <FaClipboardList className="fs-4" />,
-              label: "Orders",
+              label: "Customer Orders",
             },
             {
               key: "marketing",
               icon: <RiCouponLine className="fs-4" />,
-              label: "Marketing",
-              children: [
-                {
-                  key: "coupon",
-                  icon: <IoCreateOutline className="fs-4" />,
-                  label: "Add Coupon",
-                },
-                {
-                  key: "coupon-list",
-                  icon: <AiOutlineUnorderedList className="fs-4" />,
-                  label: "Coupon List",
-                },
-              ],
+              label: "Inventory",
             },
-            {
-              key: "blogs",
-              icon: <FaMicroblog className="fs-4" />,
-              label: "Blogs",
-              children: [
-                {
-                  key: "blog",
-                  icon: <IoCreateOutline className="fs-4" />,
-                  label: "Add Blog",
-                },
-                {
-                  key: "blog-list",
-                  icon: <AiOutlineUnorderedList className="fs-4" />,
-                  label: "Blog List",
-                },
-                {
-                  key: "blog-category",
-                  icon: <IoCreateOutline className="fs-4" />,
-                  label: "Add Blog Category",
-                },
-                {
-                  key: "blog-category-list",
-                  icon: <AiOutlineUnorderedList className="fs-4" />,
-                  label: "Blog Category List",
-                },
-              ],
-            },
-            {
-              key: "enquiries",
-              icon: <VscRequestChanges className="fs-4" />,
-              label: "Enquiries",
-            },
+          
             {
               key: "signout",
               icon: <CiLogout className="fs-4" />,
@@ -259,4 +200,4 @@ const MainLayout = () => {
     </Layout>
   );
 };
-export default MainLayout;
+export default AdminLayout;

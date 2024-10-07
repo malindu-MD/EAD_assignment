@@ -22,7 +22,6 @@ builder.Services.AddSingleton<IMongoClient>(s =>
     return new MongoClient(settings.ConnectionString);
 });
 
-
 // Register MongoDB database
 builder.Services.AddScoped(s =>
 {
@@ -31,16 +30,23 @@ builder.Services.AddScoped(s =>
     return client.GetDatabase(settings.DatabaseName);
 });
 
-
-
 // Add services to the container.
-
 builder.Services.AddControllers();
+
+// 1. Add CORS policy here:
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder =>
+    {
+        builder.AllowAnyOrigin() // Allow any origin (for development only, customize for production)
+               .AllowAnyMethod() // Allow any HTTP method (GET, POST, PUT, DELETE, etc.)
+               .AllowAnyHeader(); // Allow any header
+    });
+});
 
 // 3. Configure JWT Authentication
 var secret = builder.Configuration.GetSection("JwtSettings:Secret").Value;
 var key = Encoding.ASCII.GetBytes(secret);
-
 
 builder.Services.AddAuthentication(options =>
 {
@@ -58,12 +64,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuer = false,
         ValidateAudience = false,
         RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-
-
-
     };
 });
-
 
 // 4. Register Services and Helpers
 builder.Services.AddSingleton<JwtHelper>(new JwtHelper(secret));
@@ -72,9 +74,6 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
-
-
-
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddSwaggerGen(c =>
@@ -110,7 +109,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -126,8 +124,8 @@ builder.Services.AddScoped<IVendorService, VendorService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddHostedService<StockCheckService>();
 
-
 var app = builder.Build();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -136,6 +134,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// 2. Use the CORS policy globally
+app.UseCors("CorsPolicy");
 
 app.UseAuthentication();
 
