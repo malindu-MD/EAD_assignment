@@ -1,4 +1,9 @@
-﻿using ecommerceWebServicess.Interfaces;
+﻿/***************************************************************************
+ * File: NotificationController.cs
+ * Description: Provides API endpoints for managing notifications by user ID.
+ ***************************************************************************/
+
+using ecommerceWebServicess.Interfaces;
 using ecommerceWebServicess.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -12,16 +17,16 @@ namespace ecommerceWebServicess.Controllers
     {
         private readonly INotificationService _notificationService;
 
-
+        // Constructor to inject the notification service
         public NotificationController(INotificationService notificationService)
         {
             _notificationService = notificationService;
         }
 
-
         // GET: api/Notification/{userId}
+        // Fetches notifications for a specific user
         [HttpGet("{userId}")]
-        [Authorize(Roles = "CSR, Administrator, Customer,Vendor")]
+        [Authorize(Roles = "CSR, Administrator, Customer, Vendor")]
         public async Task<IActionResult> GetNotificationsByUserId(string userId)
         {
             if (string.IsNullOrEmpty(userId))
@@ -39,6 +44,5 @@ namespace ecommerceWebServicess.Controllers
 
             return Ok(notifications);
         }
-
     }
 }

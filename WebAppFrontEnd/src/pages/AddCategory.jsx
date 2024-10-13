@@ -6,9 +6,10 @@ import CustomInput from "../components/CustomInput";
 import { HiOutlineArrowLongLeft } from "react-icons/hi2";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { axiosInstance, config } from "../utils/axiosConfig";
+import { base_url } from "../utils/base_url";
 
 // Hardcoded token (for temporary use)
-const hardcodedToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiI2NzAyYzI1ZGM4MjY1YzEzODJlNjhmZDEiLCJlbWFpbCI6ImJkc21AZ21haWwuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbW9iaWxlcGhvbmUiOiIwMjcyMjI2MDg4Iiwicm9sZSI6IkFkbWluaXN0cmF0b3IiLCJuYmYiOjE3MjgyNzkwNzksImV4cCI6MTcyODg4Mzg3OSwiaWF0IjoxNzI4Mjc5MDc5fQ.Fzl0D4Rg3KgslPTWCP9DadT_cpRhoxx18Kk0fQR0I38'; // Replace this with your actual token
 
 // Yup validation schema
 const schema = Yup.object().shape({
@@ -25,12 +26,8 @@ const AddCategory = () => {
   useEffect(() => {
     // If it's edit mode, load the category data
     if (getCategoryId) {
-      axios
-        .get(`http://localhost:5272/api/category/${getCategoryId}`, {
-          headers: {
-            Authorization: `Bearer ${hardcodedToken}`, // Using the hardcoded token
-          },
-        })
+      axiosInstance
+        .get(`${base_url}category/${getCategoryId}`,config())
         .then((response) => {
           setCategoryName(response.data.name);
         })
@@ -49,16 +46,10 @@ const AddCategory = () => {
     onSubmit: (values) => {
       if (getCategoryId) {
         // Update category
-        axios
+        axiosInstance
           .put(
-            `http://localhost:5272/api/category/${getCategoryId}`,
-            { name: values.title },
-            {
-              headers: {
-                Authorization: `Bearer ${hardcodedToken}`, // Using the hardcoded token
-              },
-            }
-          )
+            `${base_url}category/${getCategoryId}`,
+            { name: values.title },config())
           .then(() => {
             toast.success("Category Updated Successfully");
             navigate("/admin/category-list");
@@ -69,17 +60,10 @@ const AddCategory = () => {
       } else {
        
         // Add new category
-        axios
+        axiosInstance
           .post(
-            "http://localhost:5272/api/category",
-            { name: values.title },
-            {
-              headers: {
-                Authorization: `Bearer ${hardcodedToken}`, // Using the hardcoded token
-                "Content-Type": "application/json",
-              },
-            }
-          )
+            `${base_url}category`,
+            { name: values.title },config())
           .then(() => {
             toast.success("Category Added Successfully");
             formik.resetForm();

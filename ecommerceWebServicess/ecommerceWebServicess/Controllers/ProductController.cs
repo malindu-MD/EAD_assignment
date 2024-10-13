@@ -1,4 +1,11 @@
-﻿using ecommerceWebServicess.DTOs;
+﻿/***************************************************************************
+ * File: ProductController.cs
+ * Description: Controller responsible for handling product-related operations 
+ *              such as creating, updating, deleting, and managing products, 
+ *              as well as inventory and stock-related actions for vendors.
+ ***************************************************************************/
+
+using ecommerceWebServicess.DTOs;
 using System.Security.Claims;
 using ecommerceWebServicess.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -11,19 +18,18 @@ namespace ecommerceWebServicess.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-
         private readonly IProductService _productService;
 
-
+        // Constructor to inject the product service
         public ProductController(IProductService productService)
         {
             _productService = productService;
         }
 
-        // POST: api/Product
+        // POST: Create a new product
         [HttpPost]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> CreateProduct([FromForm] CreateProductDto createProductDto)
+        public async Task<IActionResult> CreateProduct(CreateProductDto createProductDto)
         {
             if (!ModelState.IsValid)
             {
@@ -31,13 +37,10 @@ namespace ecommerceWebServicess.Controllers
             }
 
             var vendorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
             if (vendorId == null)
             {
                 return Unauthorized("Vendor not authenticated.");
             }
-
-
 
             try
             {
@@ -50,10 +53,7 @@ namespace ecommerceWebServicess.Controllers
             }
         }
 
-
-
-
-        // PUT: api/Product/{id}
+        // PUT: Update an existing product
         [HttpPut("{id}")]
         [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> UpdateProduct(string id, [FromForm] UpdateProductDto updateProductDto)
@@ -63,15 +63,11 @@ namespace ecommerceWebServicess.Controllers
                 return BadRequest(ModelState);
             }
 
-            var vendorId = User.FindFirst("nameid")?.Value;
-
-
+            var vendorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (vendorId == null)
             {
                 return Unauthorized("Vendor not authenticated.");
             }
-
-          
 
             try
             {
@@ -84,30 +80,22 @@ namespace ecommerceWebServicess.Controllers
             }
         }
 
-
-
-
-        // DELETE: api/Product/{id}
+        // DELETE: Delete a product
         [HttpDelete("{id}")]
         [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> DeleteProduct(string id)
         {
-            var vendorId = User.FindFirst("nameid")?.Value;
-
-
+            var vendorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (vendorId == null)
             {
                 return Unauthorized("Vendor not authenticated.");
             }
 
-
             try
             {
                 var success = await _productService.DeleteProductAsync(id, vendorId);
-                if (success)
-                    return NoContent();
-                else
-                    return NotFound();
+                if (success) return NoContent();
+                return NotFound();
             }
             catch (Exception ex)
             {
@@ -115,21 +103,16 @@ namespace ecommerceWebServicess.Controllers
             }
         }
 
-
-
-        // GET: api/Product/{id}
+        // GET: Get product by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(string id)
         {
             var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
-                return NotFound();
-
+            if (product == null) return NotFound();
             return Ok(product);
         }
 
-
-        // GET: api/Product
+        // GET: Get all products with query parameters
         [HttpGet]
         public async Task<IActionResult> GetProducts([FromQuery] ProductQueryParameters parameters)
         {
@@ -137,9 +120,7 @@ namespace ecommerceWebServicess.Controllers
             return Ok(products);
         }
 
-
-
-        // PUT: api/Product/Inventory/{id}
+        // PUT: Update product inventory
         [HttpPut("Inventory/{id}")]
         [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> UpdateInventory(string id, [FromBody] InventoryUpdateDto inventoryUpdateDto)
@@ -150,20 +131,16 @@ namespace ecommerceWebServicess.Controllers
             }
 
             var vendorId = User.FindFirst("nameid")?.Value;
-
             if (vendorId == null)
             {
                 return Unauthorized("Vendor not authenticated.");
             }
 
-
             try
             {
                 var success = await _productService.UpdateInventoryAsync(id, inventoryUpdateDto, vendorId);
-                if (success)
-                    return NoContent();
-                else
-                    return NotFound();
+                if (success) return NoContent();
+                return NotFound();
             }
             catch (Exception ex)
             {
@@ -171,12 +148,9 @@ namespace ecommerceWebServicess.Controllers
             }
         }
 
-
-
-
-        // DELETE: api/Product/Stock/{id}
+        // DELETE: Remove product stock
         [HttpDelete("Stock/{id}")]
-        [Authorize(Roles = "Vendor,Administrator")]
+        [Authorize(Roles = "Vendor")]
         public async Task<IActionResult> RemoveProductStock(string id)
         {
             var vendorId = User.FindFirst("nameid")?.Value;
@@ -184,7 +158,6 @@ namespace ecommerceWebServicess.Controllers
             {
                 return Unauthorized("Vendor not authenticated.");
             }
-
 
             if (!ModelState.IsValid)
             {
@@ -194,10 +167,8 @@ namespace ecommerceWebServicess.Controllers
             try
             {
                 var success = await _productService.RemoveProductStockAsync(id, vendorId);
-                if (success)
-                    return NoContent();
-                else
-                    return NotFound();
+                if (success) return NoContent();
+                return NotFound();
             }
             catch (Exception ex)
             {
@@ -205,12 +176,16 @@ namespace ecommerceWebServicess.Controllers
             }
         }
 
-
-
-        // GET: api/Product/Vendor/{vendorId}
-        [HttpGet("Vendor/{vendorId}")]
-        public async Task<IActionResult> GetProductsByVendorId(string vendorId)
+        // GET: Get products by vendor ID
+        [HttpGet("Vendor")]
+        public async Task<IActionResult> GetProductsByVendorId()
         {
+            var vendorId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (vendorId == null)
+            {
+                return Unauthorized("Vendor not authenticated.");
+            }
+
             var products = await _productService.GetProductsByVendorIdAsync(vendorId);
             if (products == null || !products.Any())
             {
@@ -220,12 +195,11 @@ namespace ecommerceWebServicess.Controllers
             return Ok(products);
         }
 
-
+        // GET: Search products by keyword
         [HttpGet("Search")]
         public async Task<IActionResult> SearchProducts([FromQuery] string keyword)
-        {   
-
-            if(string.IsNullOrEmpty(keyword))
+        {
+            if (string.IsNullOrEmpty(keyword))
             {
                 return BadRequest("Keyword is required.");
             }
@@ -239,12 +213,11 @@ namespace ecommerceWebServicess.Controllers
             return Ok(products);
         }
 
-
+        // GET: Get all products
         [HttpGet("All")]
         public async Task<IActionResult> GetAllProducts()
         {
             var products = await _productService.GetAllProductsAsync();
-
             if (products == null || !products.Any())
             {
                 return NotFound("No products found.");
@@ -253,32 +226,45 @@ namespace ecommerceWebServicess.Controllers
             return Ok(products);
         }
 
-
-
+        // GET: Check all products for low stock
         [HttpGet("CheckLowStock")]
         public async Task<IActionResult> CheckAllProductsForLowStock()
         {
             try
             {
-                // Call the product service method to check all products for low stock
                 await _productService.CheckAllProductsForLowStockAsync();
-
                 return Ok("Low stock check completed and notifications sent if required.");
             }
             catch (Exception ex)
             {
-                // Return an error message if something goes wrong
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
+        // PATCH: Activate a product
+        [HttpPatch("{productId}/activate")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> ActivateProduct(string productId)
+        {
+            var result = await _productService.ActivateProductAsync(productId);
+            if (result)
+            {
+                return Ok(new { success = true, message = "Product activated successfully." });
+            }
+            return NotFound(new { success = false, message = "Product not found." });
+        }
 
-
-
-
-
-
-
-
+        // PATCH: Deactivate a product
+        [HttpPatch("{productId}/deactivate")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> DeactivateProduct(string productId)
+        {
+            var result = await _productService.DeactivateProductAsync(productId);
+            if (result)
+            {
+                return Ok(new { success = true, message = "Product deactivated successfully." });
+            }
+            return NotFound(new { success = false, message = "Product not found." });
+        }
     }
 }

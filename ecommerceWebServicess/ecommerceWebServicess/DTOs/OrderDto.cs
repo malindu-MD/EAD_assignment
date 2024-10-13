@@ -5,6 +5,8 @@
         public class OrderDto
         {
             public string Id { get; set; }
+             
+            public string OrderId { get; set; }  
             public string UserId { get; set; }
             public DateTime CreatedAt { get; set; }
             public string Status { get; set; }
@@ -38,9 +40,15 @@
         public class OrderItemDto
         {
             public string ProductId { get; set; }
+            
+            public string ProductCode { get; set; }
+
             public string ProductName { get; set; }
             public double ProductPrice { get; set; }
             public int Quantity { get; set; }
+
+            public string ImageUrl { get; set; }
+
             public string VendorId { get; set; }
             public string VendorName { get; set; }
             public string FulfillmentStatus { get; set; }

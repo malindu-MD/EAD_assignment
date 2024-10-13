@@ -1,4 +1,10 @@
-﻿using ecommerceWebServicess.DTOs;
+﻿/***************************************************************************
+ * File: AuthController.cs
+ * Description: Handles user authentication, including login and JWT token 
+ *              generation.
+ ***************************************************************************/
+
+using ecommerceWebServicess.DTOs;
 using ecommerceWebServicess.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,38 +15,37 @@ namespace ecommerceWebServicess.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-
         private readonly IAuthService _authService;
 
-
+        // Constructor to inject the AuthService dependency
         public AuthController(IAuthService authService)
         {
             _authService = authService;
         }
 
-
+        // POST: api/Auth/login
+        // Authenticates the user based on login credentials
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
         {
-            // Call the AuthenticateAsync method asynchronously
+            // Call authentication service
             var loginResponse = await _authService.AuthenticateAsync(loginDto);
 
+            // If credentials are invalid, return unauthorized response
             if (loginResponse == null)
             {
-                // If authentication fails, return Unauthorized
                 return Unauthorized("Invalid credentials.");
             }
 
-            // If authentication succeeds, return the token in the response
+            // Return token and user information on successful login
             return Ok(new
             {
                 id = loginResponse.Id,
                 name = loginResponse.Username,
                 email = loginResponse.Email,
                 token = loginResponse.Token,
-                role=loginResponse.Role,
+                role = loginResponse.Role,
             });
         }
-
     }
 }

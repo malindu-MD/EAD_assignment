@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Table } from "antd";
-import { useDispatch, useSelector } from "react-redux";
+import { Table,Switch } from "antd";
 import { Link } from "react-router-dom";
 import { BiEdit } from "react-icons/bi";
 import { TiDeleteOutline } from "react-icons/ti";
-import {
-  getCategories,
-  deleteProductCategory,
-  resetState,
-} from "../features/prodCategory/prodCategorySlice";
 import CustomModal from "../components/CustomModal";
+import axios from "axios";
+import { base_url } from "../utils/base_url";
+import { axiosInstance, config } from "../utils/axiosConfig";
+
+
 
 const columns = [
   {
@@ -17,9 +16,19 @@ const columns = [
     dataIndex: "key",
   },
   {
-    title: "Title",
+    title: "Category Name",
     dataIndex: "title",
     sorter: (a, b) => a.title.length - b.title.length,
+  },
+  {
+    title: "Active",
+    dataIndex: "isActive",
+    render: (isActive, record) => (
+      <Switch
+        checked={isActive}
+        
+      />
+    ),
   },
   {
     title: "Action",
@@ -28,60 +37,64 @@ const columns = [
 ];
 
 const CategoryList = () => {
+  const [categories, setCategories] = useState([]);
   const [open, setOpen] = useState(false);
   const [productCategoryId, setProductCategoryId] = useState("");
 
-  const showModal = (e) => {
+  const showModal = (id) => {
     setOpen(true);
-    setProductCategoryId(e);
+    setProductCategoryId(id);
   };
+
   const hideModal = () => {
     setOpen(false);
   };
 
-  const dispatch = useDispatch();
+  // Fetch all categories
   useEffect(() => {
-    dispatch(resetState());
-    dispatch(getCategories());
-    // eslint-disable-next-line
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosInstance.get(`${base_url}category`,config());
+        setCategories(response.data);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
-  const prodCategoryState = useSelector(
-    (state) => state.prodCategory.prodCategories
-  );
-
-  const data = [];
-  for (let i = 0; i < prodCategoryState.length; i++) {
-    data.push({
-      key: i + 1,
-      title: prodCategoryState[i].title,
-      action: (
-        <>
-          <Link
-            to={`/admin/category/${prodCategoryState[i]._id}`}
-            className="text-success fs-3"
-          >
-            <BiEdit />
-          </Link>
-
-          <button
-            className="ms-3 text-danger fs-3 bg-transparent border-0"
-            onClick={() => showModal(prodCategoryState[i]._id)}
-          >
-            <TiDeleteOutline />
-          </button>
-        </>
-      ),
-    });
-  }
-
-  const deleteProdCategory = (e) => {
-    dispatch(deleteProductCategory(e));
-    setOpen(false);
-    setTimeout(() => {
-      dispatch(getCategories());
-    }, 100);
+  // Delete category
+  const deleteProdCategory = async (id) => {
+    try {
+      await axiosInstance.delete(`${base_url}category/${id}`,config());
+      setCategories(categories.filter((category) => category._id !== id));
+      setOpen(false);
+    } catch (error) {
+      console.error("Error deleting category:", error);
+    }
   };
+
+  const data = categories.map((category, index) => ({
+    key: index + 1,
+    title: category.name,
+    action: (
+      <>
+        <Link to={`/admin/category/${category._id}`} className="text-success fs-3">
+          <BiEdit />
+        </Link>
+
+        <button
+          className="ms-3 text-danger fs-3 bg-transparent border-0"
+          onClick={() => showModal(category._id)}
+        >
+          <TiDeleteOutline />
+        </button>
+      </>
+    ),
+  }));
+
   return (
     <div>
       <h3 className="mb-4 title">Product Categories</h3>
@@ -91,9 +104,7 @@ const CategoryList = () => {
       <CustomModal
         hideModal={hideModal}
         open={open}
-        performAction={() => {
-          deleteProdCategory(productCategoryId);
-        }}
+        performAction={() => deleteProdCategory(productCategoryId)}
         title="Are you sure you want to delete this category?"
       />
     </div>

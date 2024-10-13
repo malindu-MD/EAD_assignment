@@ -1,4 +1,9 @@
-﻿using ecommerceWebServicess.DTOs;
+﻿/**************************************************************************
+ * File: UserService.cs
+ * Description: Service for managing user registration, updates, and status.
+ **************************************************************************/
+
+using ecommerceWebServicess.DTOs;
 using ecommerceWebServicess.Helpers;
 using ecommerceWebServicess.Interfaces;
 using ecommerceWebServicess.Models;
@@ -8,9 +13,7 @@ using MongoDB.Driver;
 namespace ecommerceWebServicess.Services
 {
     public class UserService : IUserService
-
-     {
-
+    {
         private readonly IMongoCollection<User> _users;
         private readonly PasswordHasher _passwordHasher;
 
@@ -21,11 +24,10 @@ namespace ecommerceWebServicess.Services
             _passwordHasher = passwordHasher;
         }
 
-
+        // Deactivate a user
         public async Task DeactivateUserAsync(string id)
         {
             var objectId = ObjectId.Parse(id);
-
             var user = await _users.Find(u => u.Id == objectId).FirstOrDefaultAsync();
             if (user != null)
             {
@@ -35,12 +37,14 @@ namespace ecommerceWebServicess.Services
             }
         }
 
+        // Delete a user
         public async Task DeleteUserAsync(string id)
         {
             var objectId = ObjectId.Parse(id);
             await _users.DeleteOneAsync(u => u.Id == objectId);
         }
 
+        // Get all users
         public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
         {
             var users = await _users.Find(_ => true).ToListAsync();
@@ -54,10 +58,10 @@ namespace ecommerceWebServicess.Services
             });
         }
 
+        // Get user by ID
         public async Task<UserDTO> GetUserByIdAsync(string id)
         {
             var objectId = ObjectId.Parse(id);
-
             var user = await _users.Find(u => u.Id == objectId).FirstOrDefaultAsync();
             if (user == null) return null;
 
@@ -71,10 +75,10 @@ namespace ecommerceWebServicess.Services
             };
         }
 
+        // Reactivate a user
         public async Task ReactivateUserAsync(string id)
         {
             var objectId = ObjectId.Parse(id);
-
             var user = await _users.Find(u => u.Id == objectId).FirstOrDefaultAsync();
             if (user != null)
             {
@@ -84,31 +88,24 @@ namespace ecommerceWebServicess.Services
             }
         }
 
+        // Register a new user
         public async Task<UserDTO> RegisterUserAsync(RegisterDTO registerDto)
         {
             var existingUser = await _users.Find(u => u.Email == registerDto.Email).FirstOrDefaultAsync();
-            if (existingUser != null)
-            {
-                return null;  // Email already in use
-            }
+            if (existingUser != null) return null;  // Email already in use
 
             var hashedPassword = _passwordHasher.HashPassword(registerDto.Password);
-
-            // Validate the role if required (Optional)
             var role = registerDto.Role;
-            if (string.IsNullOrEmpty(role) || !IsValidRole(role))
-            {
-                return null;  // Invalid role
-            }
+            if (string.IsNullOrEmpty(role) || !IsValidRole(role)) return null;  // Invalid role
 
             var newUser = new User
             {
                 Username = registerDto.Username,
                 Email = registerDto.Email,
                 PasswordHash = hashedPassword,
-                PhoneNumber = registerDto.PhoneNumber,  // Store phone number
-                Role = role,  // Set role based on registration
-                IsActive = role != "Customer"  // Customers need CSR/Admin approval, others might not
+                PhoneNumber = registerDto.PhoneNumber,
+                Role = role,
+                IsActive = role != "Customer"  // Customers need CSR/Admin approval
             };
 
             await _users.InsertOneAsync(newUser);
@@ -123,27 +120,42 @@ namespace ecommerceWebServicess.Services
             };
         }
 
-        // Optional helper method to check if the role is valid
+        // Helper method to validate roles
         private static bool IsValidRole(string role)
         {
             return role == "Customer" || role == "Vendor" || role == "CSR" || role == "Administrator";
         }
 
-
+        // Update an existing user
         public async Task<UserDTO> UpdateUserAsync(string id, UserDTO userDto)
         {
             var objectId = ObjectId.Parse(id);
-
             var user = await _users.Find(u => u.Id == objectId).FirstOrDefaultAsync();
             if (user == null) return null;
 
             user.Username = userDto.Username;
             user.Email = userDto.Email;
-            user.PhoneNumber = userDto.PhoneNumber;  // Update phone number
+            user.PhoneNumber = userDto.PhoneNumber;
             user.Role = userDto.Role;
 
             await _users.ReplaceOneAsync(u => u.Id == user.Id, user);
             return userDto;
+        }
+
+        // Get all customers
+        public async Task<IEnumerable<CustomerDto>> GetAllCustomersAsync()
+        {
+            var customerUsers = await _users.Find(u => u.Role == "Customer").ToListAsync();
+            return customerUsers.Select(user => new CustomerDto
+            {
+                Id = user.Id.ToString(),
+                Username = user.Username,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Role = user.Role,
+                IsActive = user.IsActive,
+                CreatedAt = user.CreatedAt
+            });
         }
     }
 }

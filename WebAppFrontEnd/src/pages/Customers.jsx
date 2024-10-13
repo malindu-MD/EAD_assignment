@@ -1,7 +1,10 @@
-import React, { useEffect } from "react";
-import { Table } from "antd";
-import { useDispatch, useSelector } from "react-redux";
-import { getUsers } from "../features/customers/customerSlice";
+import React, { useEffect, useState } from "react";
+import { Table, Switch } from "antd";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { base_url } from "../utils/base_url";
+import { axiosInstance, config } from "../utils/axiosConfig";
+
 
 const columns = [
   {
@@ -16,32 +19,69 @@ const columns = [
   {
     title: "Email",
     dataIndex: "email",
+    sorter: (a, b) => a.email.length - b.email.length,
   },
   {
     title: "Mobile",
     dataIndex: "mobile",
   },
+  {
+    title: "Created Date",
+    dataIndex: "date",
+  },
+  {
+    title: "Activation/Deactivation",
+    dataIndex: "isActive",
+    render: (isActive, record) => (
+      <Switch
+        checked={isActive}
+        //onChange={() => toggleUserStatus(record.id, !isActive)}
+      />
+    ),
+  },
 ];
 
 const Customers = () => {
-  const dispatch = useDispatch();
+  const [customers, setCustomers] = useState([]);
+
+  // Fetch users (customers)
+  const fetchCustomers = async () => {
+    try {
+      const res = await axiosInstance.get(`${base_url}Users/customer`, config());
+      setCustomers(res.data);
+    } catch (error) {
+      toast.error("Error fetching customers");
+    }
+  };
+
+  // Toggle user activation status
+  const toggleUserStatus = async (id, newStatus) => {
+    try {
+      const endpoint = newStatus
+        ? `${base_url}users/${id}/activate`
+        : `${base_url}users/${id}/deactivate`;
+
+      await axiosInstance.patch(endpoint, null,config());
+      toast.success(`User ${newStatus ? "activated" : "deactivated"} successfully`);
+      fetchCustomers(); // Refetch the customers after status change
+    } catch (error) {
+      toast.error("Error updating user status");
+    }
+  };
+
   useEffect(() => {
-    dispatch(getUsers());
-    // eslint-disable-next-line
+    fetchCustomers();
   }, []);
 
-  const customerState = useSelector((state) => state.customer.customers);
-  const data = [];
-  for (let i = 0; i < customerState.length; i++) {
-    if (customerState[i].role !== "admin") {
-      data.push({
-        key: i,
-        name: customerState[i].firstName + " " + customerState[i].lastName,
-        email: customerState[i].email,
-        mobile: customerState[i].mobile,
-      });
-    }
-  }
+  const data = customers.map((customer, index) => ({
+      key: index + 1,
+      name: customer.username,
+      email: customer.email,
+      mobile: customer.phoneNumber,
+      date: new Date(customer.createdAt).toLocaleDateString(),
+      isActive: customer.isActive,
+      id: customer.id,
+    }));
 
   return (
     <div>

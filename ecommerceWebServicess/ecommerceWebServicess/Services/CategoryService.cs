@@ -1,4 +1,10 @@
-﻿using AutoMapper;
+﻿/**************************************************************************
+ * File: CategoryService.cs
+ * Description: Service for managing categories, including creating,
+ *              updating, deleting, and activating/deactivating categories.
+ **************************************************************************/
+
+using AutoMapper;
 using ecommerceWebServicess.DTOs;
 using ecommerceWebServicess.Interfaces;
 using ecommerceWebServicess.Models;
@@ -6,12 +12,13 @@ using MongoDB.Driver;
 
 namespace ecommerceWebServicess.Services
 {
-    public class CategoryService:ICategoryService
+    public class CategoryService : ICategoryService
     {
         private readonly IMongoCollection<Category> _categoryCollection;
         private readonly IMongoCollection<Product> _productCollection;
         private readonly IMapper _mapper;
 
+        // Constructor to initialize MongoDB collections and AutoMapper
         public CategoryService(IMongoClient mongoClient, IMapper mapper)
         {
             var database = mongoClient.GetDatabase("ECommerceDB");
@@ -20,8 +27,7 @@ namespace ecommerceWebServicess.Services
             _mapper = mapper;
         }
 
-
-
+        // Create a new category
         public async Task<CategoryDto> CreateCategoryAsync(CreateCategoryDto createCategoryDto)
         {
             var category = _mapper.Map<Category>(createCategoryDto);
@@ -32,14 +38,11 @@ namespace ecommerceWebServicess.Services
             return _mapper.Map<CategoryDto>(category);
         }
 
-
+        // Update an existing category by ID
         public async Task<CategoryDto?> UpdateCategoryAsync(string id, UpdateCategoryDto updateCategoryDto)
         {
             var category = await _categoryCollection.Find(c => c.Id == id).FirstOrDefaultAsync();
-            if (category == null)
-            {
-                return null;
-            }
+            if (category == null) return null;
 
             category.Name = updateCategoryDto.Name;
             category.IsActive = updateCategoryDto.IsActive;
@@ -49,35 +52,35 @@ namespace ecommerceWebServicess.Services
             return _mapper.Map<CategoryDto?>(category);
         }
 
+        // Delete a category if no products are linked to it
         public async Task<bool> DeleteCategoryAsync(string id)
         {
-            // Check if any products are associated with the category
             var productsInCategory = await _productCollection.CountDocumentsAsync(p => p.CategoryId == id);
 
             if (productsInCategory > 0)
             {
-                // Return false or throw an exception if there are products linked to the category
                 throw new Exception("Cannot delete category because products are associated with it.");
             }
 
-            // If no products are associated, delete the category
             var deleteResult = await _categoryCollection.DeleteOneAsync(c => c.Id == id);
             return deleteResult.DeletedCount > 0;
         }
 
-
+        // Get all categories
         public async Task<IEnumerable<CategoryDto>> GetCategoriesAsync()
         {
             var categories = await _categoryCollection.Find(c => true).ToListAsync();
             return _mapper.Map<IEnumerable<CategoryDto>>(categories);
         }
 
+        // Get a category by ID
         public async Task<CategoryDto?> GetCategoryByIdAsync(string id)
         {
             var category = await _categoryCollection.Find(c => c.Id == id).FirstOrDefaultAsync();
             return category == null ? null : _mapper.Map<CategoryDto?>(category);
         }
 
+        // Activate a category by ID
         public async Task<bool> ActivateCategoryAsync(string categoryId)
         {
             var update = Builders<Category>.Update
@@ -90,7 +93,7 @@ namespace ecommerceWebServicess.Services
             return result.ModifiedCount > 0;
         }
 
-        // Deactivate the category
+        // Deactivate a category by ID
         public async Task<bool> DeactivateCategoryAsync(string categoryId)
         {
             var update = Builders<Category>.Update
@@ -103,19 +106,14 @@ namespace ecommerceWebServicess.Services
             return result.ModifiedCount > 0;
         }
 
-
+        // Get all active categories
         public async Task<IEnumerable<CategoryDto>> GetActiveCategoriesAsync()
         {
-            // Fetch only categories where IsActive is true
             var activeCategories = await _categoryCollection
-                .Find(c => c.IsActive)  // Filter for active categories
+                .Find(c => c.IsActive)  // Only active categories
                 .ToListAsync();
 
-            // Map the result to CategoryDto and return
             return _mapper.Map<IEnumerable<CategoryDto>>(activeCategories);
         }
-
-
-
     }
 }

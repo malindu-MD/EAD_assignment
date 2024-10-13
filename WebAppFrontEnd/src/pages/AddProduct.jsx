@@ -7,165 +7,168 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Select } from "antd";
 import Dropzone from "react-dropzone";
-import { useDispatch, useSelector } from "react-redux";
-import { getBrands } from "../features/brand/brandSlice";
-import { getCategories } from "../features/prodCategory/prodCategorySlice";
-import { getColors } from "../features/color/colorSlice";
-import { deleteImg, uploadImg } from "../features/upload/uploadSlice";
-import {
-  createProducts,
-  getAProduct,
-  resetState,
-  updateAProduct,
-} from "../features/product/productSlice";
+import axios from "axios";
 import { toast } from "react-toastify";
 import { HiOutlineArrowLongLeft } from "react-icons/hi2";
+import { axiosInstance, config } from "../utils/axiosConfig";
+import { base_url } from "../utils/base_url";
 
+// Validation schema using Yup
 let schema = Yup.object().shape({
-  title: Yup.string().required("Title is Required"),
-  description: Yup.string().required("Description is Required"),
+  Name: Yup.string().required("Name is Required"),
+  Description: Yup.string().required("Description is Required"),
   price: Yup.number().required("Price is Required"),
-  brand: Yup.string().required("Brand is Required"),
+  stock: Yup.number().required("Stock Threshold is Required"),
+  
   category: Yup.string().required("Category is Required"),
-  tags: Yup.string().required("Tag is Required"),
-  color: Yup.array()
-    .min(1, "Pick at least one color")
-    .required("Color is Required"),
-  quantity: Yup.number().required("Quantity is Required"),
+ 
+  quantity: Yup.number().required("Stock is Required"),
 });
 
+const cloudinaryUrl = "https://api.cloudinary.com/v1_1/dhf95uhla/image/upload";
+const uploadPreset = "my_preset"; // Replace with your Cloudinary upload preset
+
 const AddProduct = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-
-  const [color, setColor] = useState([]);
-
-  useEffect(() => {
-    dispatch(getBrands());
-    dispatch(getCategories());
-    dispatch(getColors());
-    // eslint-disable-next-line
-  }, []);
-
-  const brandState = useSelector((state) => state.brand.brands);
-  const prodCategoryState = useSelector(
-    (state) => state.prodCategory.prodCategories
-  );
-  const colorState = useSelector((state) => state.color.colors);
-  const imgState = useSelector((state) => state.upload.images);
-  const productState = useSelector((state) => state.product);
   const getProductId = location.pathname.split("/")[3];
-  const {
-    isSuccess,
-    isError,
-    isLoading,
-    createdProduct,
-    productName,
-    productDescription,
-    productPrice,
-    productBrand,
-    productCategory,
-    productTags,
-    productColors,
-    productQuantity,
-    productImages,
-    updatedProduct,
-  } = productState;
+
+  const [categories, setCategories] = useState([]);
+  const [color, setColor] = useState([]);
+  const [image, setImage] = useState(null); // Store only one image
+  const [productDetails, setProductDetails] = useState(null);
+  const [isImageUploaded, setIsImageUploaded] = useState(false);
 
   useEffect(() => {
-    if (getProductId !== undefined) {
-      dispatch(getAProduct(getProductId));
-      if (productColors) {
-        setColor(productColors?.map((color) => color?._id));
+    // Fetch brands, categories, and colors when the component mounts
+    const fetchData = async () => {
+      try {
+
+       
+
+        const categoriesRes = await axios.get("http://localhost:5272/api/category/activecategory");
+        
+      
+        setCategories(categoriesRes.data);
+     
+        
+        if (getProductId) {
+          const productRes = await axios.get(`http://localhost:8000/api/products/${getProductId}`);
+          setProductDetails(productRes.data);
+         
+        }
+      } catch (error) {
+        toast.error("Error fetching data");
       }
-    } else {
-      dispatch(resetState());
-    }
-    // eslint-disable-next-line
-  }, []);
+    };
+    
+    fetchData();
+  }, [getProductId]);
 
   useEffect(() => {
-    if (isSuccess && createdProduct) {
-      toast.success("Product Added Successfully!!!");
+    if (productDetails) {
+      formik.setValues({
+        Name: productDetails.Name || "",
+        Description: productDetails.description || "",
+        price: productDetails.price || "",
+        brand: productDetails.brand || "",
+        stock: productDetails.stock || "",
+        category: productDetails.category || "",
+        tags: productDetails.tags || "",
+        color: color || [],
+        quantity: productDetails.quantity || "",
+        image: image || "",
+      });
     }
-    if (isSuccess && updatedProduct) {
-      toast.success("Product Updated Successfullly!");
-      navigate("/admin/product-list");
-    }
-
-    if (isError) {
-      toast.error("Something Went Wrong!");
-    } // eslint-disable-next-line
-  }, [isSuccess, isError, isLoading]);
-
-  const coloropt = [];
-  colorState.forEach((i) => {
-    coloropt.push({
-      label: i.title,
-      value: i._id,
-    });
-  });
-
-  const img = [];
-  imgState.forEach((i) => {
-    img.push({
-      public_id: i.public_id,
-      url: i.url,
-    });
-  });
+  }, [productDetails]);
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      title: productName || "",
-      description: productDescription || "",
-      price: productPrice || "",
-      brand: productBrand || "",
-      category: productCategory || "",
-      tags: productTags || "",
+      Name:"njn",
+      Description: "ddsfs",
+      price: productDetails?.price || "",
+      brand: productDetails?.brand || "",
+      stock: "apilage",
+      category: productDetails?.category || "",
+      tags: productDetails?.tags || "",
       color: color || [],
-      quantity: productQuantity || "",
-      images: img || "",
+      quantity: "jjj",
+      image: image || "",
     },
     validationSchema: schema,
-    onSubmit: (values) => {
-      if (getProductId !== undefined) {
-        const data = { id: getProductId, productData: values };
-        dispatch(updateAProduct(data));
-        dispatch(resetState());
-      } else {
-        dispatch(createProducts(values));
-        formik.resetForm();
-        setColor(null);
-        setTimeout(() => {
-          dispatch(resetState());
-          navigate("/admin/product-list");
-        }, 1500);
+    onSubmit: async (values) => {
+      try {
+        if (getProductId) {
+          await axios.put(`http://localhost:8000/api/products/${getProductId}`, values);
+          toast.success("Product Updated Successfully");
+        } else {
+          await axiosInstance.post(
+            `${base_url}product`,
+            {
+              name: values.Name,
+              description: values.Description,
+              categoryId: values.category,
+              price:values.price ,
+              stock: values.quantity,
+              stockThreshold: values.stock,
+              imageUrl: image.url,
+              isActive: true
+            },
+            config()
+          );
+          toast.success("Product Added Successfully");
+        }
+        navigate("/admin/product-list");
+      } catch (error) {
+        toast.error("Something went wrong!");
       }
     },
   });
-  const handleColors = (value) => {
-    setColor(value);
-    formik.setFieldValue("color", value);
+
+
+
+  
+  const handleImageUpload = async (acceptedFiles) => {
+    const file = acceptedFiles[0];
+    const formData = new FormData();
+
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+
+    try {
+      const res = await axios.post(cloudinaryUrl, formData);
+      const uploadedImage = { url: res.data.secure_url, public_id: res.data.public_id };
+      setImage(uploadedImage); // Replace with the new image
+      setIsImageUploaded(true); // Mark image as uploaded
+      toast.success("Image uploaded successfully");
+     
+    } catch (error) {
+      toast.error("Error uploading image");
+      console.log(error);
+
+      
+    }
+  };
+
+  const handleImageDelete = () => {
+    setImage(null); // Remove the image
+    setIsImageUploaded(false); // Reset image upload status
   };
 
   const goBack = () => {
     navigate(-1);
   };
 
+
+
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center">
-        <h3 className="mb-4 title">
-          {getProductId !== undefined ? "Edit" : "Add"} Product
-        </h3>
+        <h3 className="mb-4 title">{getProductId ? "Edit" : "Edit"} Product</h3>
         <div>
-          {getProductId !== undefined && (
-            <button
-              className="bg-transparent border-0 mb-0 fs-6 d-flex gap-3 align-items-center"
-              onClick={goBack}
-            >
+          {getProductId && (
+            <button className="bg-transparent border-0 mb-0 fs-6 d-flex gap-3 align-items-center" onClick={goBack}>
               <HiOutlineArrowLongLeft className="text-dark fs-2" />
               Go Back
             </button>
@@ -174,190 +177,76 @@ const AddProduct = () => {
       </div>
 
       <div>
-        <form
-          action=""
-          onSubmit={formik.handleSubmit}
-          className="d-flex gap-3 flex-column"
-        >
+        <form onSubmit={formik.handleSubmit} className="d-flex gap-3 flex-column">
           <CustomInput
             type="text"
-            label="Enter Product Title"
-            name="title"
-            onChng={formik.handleChange("title")}
-            onBLr={formik.handleBlur("title")}
-            val={formik.values.title}
+            label="Enter Product Name"
+            name="Name"
+            onChng={formik.handleChange("Name")}
+            onBLr={formik.handleBlur("Name")}
+            val={formik.values.Name}
           />
-          <div className="error">
-            {formik.touched.title && formik.errors.title}
-          </div>
-          <div className="">
-            <ReactQuill
-              theme="snow"
-              name="description"
-              onChange={formik.handleChange("description")}
-              value={formik.values.description}
-              placeholder="Enter Product Description"
-            />
-            <div className="error">
-              {formik.touched.description && formik.errors.description}
-            </div>
-          </div>
-          <CustomInput
-            type="number"
-            label="Enter Product Price"
-            name="price"
-            onChng={formik.handleChange("price")}
-            onBLr={formik.handleBlur("price")}
-            val={formik.values.price}
-          />
-          <div className="error">
-            {formik.touched.price && formik.errors.price}
-          </div>
-          <select
-            name="brand"
-            onChange={formik.handleChange("brand")}
-            onBlur={formik.handleBlur("brand")}
-            value={formik.values.brand}
-            className="form-control py-3 mb-3"
-            id=""
-          >
-            <option value="">Select Brand</option>
-            {brandState.map((item, j) => {
-              return (
-                <option key={j} value={item.title}>
-                  {item.title}
-                </option>
-              );
-            })}
-          </select>
-          <div className="error">
-            {formik.touched.brand && formik.errors.brand}
-          </div>
-          <select
-            name="category"
-            onChange={formik.handleChange("category")}
-            onBlur={formik.handleBlur("category")}
-            value={formik.values.category}
-            className="form-control py-3 mb-3"
-            id=""
-          >
-            <option value="">Select Category</option>
-            {prodCategoryState.map((item, j) => {
-              return (
-                <option key={j} value={item.title}>
-                  {item.title}
-                </option>
-              );
-            })}
-          </select>
-          <div className="error">
-            {formik.touched.category && formik.errors.category}
-          </div>
-          <select
-            name="tags"
-            onChange={formik.handleChange("tags")}
-            onBlur={formik.handleBlur("tags")}
-            value={formik.values.tags}
-            className="form-control py-3 mb-3"
-            id=""
-            placeholder="Select Tags"
-          >
-            <option value="Select Tags" disabled>
-              Select Tags
-            </option>
-            <option value="featured">Featured</option>
-            <option value="popular">Popular</option>
-            <option value="special">Special</option>
-          </select>
-          <div className="error">
-            {formik.touched.tags && formik.errors.tags}
-          </div>
-          <Select
-            mode="multiple"
-            allowClear
-            className="w-100"
-            placeholder="Select colors"
-            value={color}
-            onChange={handleColors}
-            optionLabelProp="label"
-          >
-            {coloropt.map((option) => (
-              <Select.Option
-                key={option.value}
-                value={option.value}
-                label={option.label}
-              >
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <div
-                    style={{
-                      width: "20px",
-                      height: "20px",
-                      backgroundColor: option.label,
-                      marginRight: "5px",
-                      border: "1px solid #000",
-                    }}
-                  ></div>
-                  {option.label}
-                </div>
-              </Select.Option>
-            ))}
-          </Select>
+          <div className="error">{formik.touched.Name && formik.errors.Name}</div>
 
-          <div className="error">
-            {formik.touched.color && formik.errors.color}
+          <div className="">
+            <ReactQuill theme="snow" name="Description" onChange={formik.handleChange("Description")} value={formik.values.Description} placeholder="Enter Product Description" />
+            <div className="error">{formik.touched.Description && formik.errors.Description}</div>
           </div>
-          <CustomInput
-            type="number"
-            label="Enter Product Quantity"
-            name="quantity"
-            onChng={formik.handleChange("quantity")}
-            onBLr={formik.handleBlur("quantity")}
-            val={formik.values.quantity}
-          />
-          <div className="error">
-            {formik.touched.quantity && formik.errors.quantity}
-          </div>
+
+          <CustomInput type="number" label="Enter Product Price" name="price" onChng={formik.handleChange("price")} onBLr={formik.handleBlur("price")} val={formik.values.price} />
+          <div className="error">{formik.touched.price && formik.errors.price}</div>
+
+          
+
+          <select name="category" onChange={formik.handleChange("category")} onBlur={formik.handleBlur("category")} value={formik.values.category} className="form-control py-3 mb-3">
+            <option value="">Select Category</option>
+            {categories.map((category, index) => (
+              <option key={index} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <div className="error">{formik.touched.category && formik.errors.category}</div>
+
+        
+
+         
+
+          <CustomInput type="number" label="Enter Product Stock" name="quantity" onChng={formik.handleChange("quantity")} onBLr={formik.handleBlur("quantity")} val={formik.values.quantity} />
+          <div className="error">{formik.touched.quantity && formik.errors.quantity}</div>
+
+          <CustomInput type="number" label="Enter Product Stock Threshold" name="stock" onChng={formik.handleChange("stock")} onBLr={formik.handleBlur("stock")} val={formik.values.stock} />
+          <div className="error">{formik.touched.stock && formik.errors.stock}</div>
+
+         
           <div className="bg-white border-1 p-5 text-center">
-            <Dropzone
-              onDrop={(acceptedFiles) => dispatch(uploadImg(acceptedFiles))}
-            >
+            <Dropzone onDrop={(acceptedFiles) => handleImageUpload(acceptedFiles)}>
               {({ getRootProps, getInputProps }) => (
                 <section>
                   <div {...getRootProps()}>
                     <input {...getInputProps()} />
-                    <p>
-                      Drag 'n' drop some files here, or click to select files
-                    </p>
+                    <p>Drag 'n' drop an image here, or click to select a file</p>
                   </div>
                 </section>
               )}
             </Dropzone>
           </div>
-          <div className="showimages d-flex flex-wrap gap-3">
-            {imgState.map((item, j) => {
-              return (
-                <div className="position-relative" key={j}>
-                  <button
-                    type="button"
-                    onClick={() => dispatch(deleteImg(item.public_id))}
-                    className="btn-close position-absolute"
-                    style={{ top: "510x", right: "10px" }}
-                  ></button>
-                  <img
-                    src={item.url}
-                    alt="productImg"
-                    width={200}
-                    height={200}
-                  />
-                </div>
-              );
-            })}
-          </div>
-          <button
-            className="btn btn-success border-0 rounded-3 my-5"
-            type="submit"
-          >
-            {getProductId !== undefined ? "Update" : "Add"} Product
+
+          {image && (
+            <div className="position-relative mt-3">
+              <button
+                type="button"
+                onClick={() => handleImageDelete()}
+                className="btn-close position-absolute"
+                style={{ top: "10px", right: "10px" }}
+              ></button>
+              <img src={image.url} alt="productImg" width={200} height={200} />
+            </div>
+          )}
+
+
+          <button  disabled={!isImageUploaded}  className="btn btn-success border-0 rounded-3 my-5" type="submit">
+            {getProductId ? "Update" : "Add"} Product
           </button>
         </form>
       </div>

@@ -3,11 +3,7 @@ import { Column } from "@ant-design/plots";
 import { Table } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import {
-  getMonthlyData,
-  getAllOrders,
-  getYearlyData,
-} from "../features/auth/authSlice";
+
 import { useState } from "react";
 
 const columns = [
@@ -47,9 +43,7 @@ const Dashboard = () => {
   const [orderData, setOrderData] = useState([]);
 
   useEffect(() => {
-    dispatch(getMonthlyData());
-    dispatch(getYearlyData());
-    dispatch(getAllOrders());
+    
   }, []);
 
   useEffect(() => {
@@ -169,28 +163,51 @@ const Dashboard = () => {
   };
   return (
     <div>
-      <h3 className="mb-4">Dashboard</h3>
+      <h3 className="mb-4">CSR Dashboard</h3>
       <div className="d-flex justify-content-between align-items-center gap-3">
         <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
           <div>
-            <p className="desc">Total Income</p>
-            <h4 className="mb-0 sub-title">$ {yearlyDataState?.[0]?.amount}</h4>
+            <p className="desc">Total Orders</p>
+            <h4 className="mb-0 sub-title">15 </h4>
           </div>
           <div className="d-flex flex-column align-items-end">
-            <p className="mb-0 desc">Income Since Last Year from Today</p>
+            <p className="mb-0 desc"></p>
           </div>
         </div>
         <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
           <div>
-            <p className="desc">Total Sales</p>
-            <h4 className="mb-0 sub-title"> {yearlyDataState?.[0]?.count}</h4>
+            <p className="desc">Total Customers</p>
+            <h4 className="mb-0 sub-title">11</h4>
           </div>
           <div className="d-flex flex-column align-items-end">
-            <p className="mb-0 desc">Sales Since Last Year from Today</p>
+            <p className="mb-0 desc"></p>
           </div>
         </div>
+        
       </div>
-      <div className="d-flex justify-content-between gap-3">
+
+      <div className="d-flex justify-content-between align-items-center gap-3 mt-5">
+        <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
+          <div>
+            <p className="desc">New Customers</p>
+            <h4 className="mb-0 sub-title">2</h4>
+          </div>
+          <div className="d-flex flex-column align-items-end">
+            <p className="mb-0 desc"></p>
+          </div>
+        </div>
+        <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
+          <div>
+            <p className="desc">Order Cancellation </p>
+            <h4 className="mb-0 sub-title">0</h4>
+          </div>
+          <div className="d-flex flex-column align-items-end">
+            <p className="mb-0 desc"></p>
+          </div>
+        </div>
+        
+      </div>
+      {/* <div className="d-flex justify-content-between gap-3">
         <div className="mt-4 flex-grow-1 w-50">
           <h3 className="mb-5 title">Income Statistics</h3>
           <div>
@@ -203,7 +220,7 @@ const Dashboard = () => {
             <Column {...config2} />
           </div>
         </div>
-      </div>
+      </div> */}
       <div className="mt-4">
         <h3 className="mb-5 title">Recent Orders</h3>
         <div>

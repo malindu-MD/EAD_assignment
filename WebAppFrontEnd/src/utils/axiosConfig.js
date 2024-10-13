@@ -17,7 +17,7 @@ export const config = () => ({
 });
 
 export const axiosInstance = axios.create({
-  baseURL: "http://localhost:8000/api/",
+  baseURL: "https://localhost:44310/api/",
 });
 
 // Request interceptor for API calls

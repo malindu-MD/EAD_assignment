@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import CustomInput from "../components/CustomInput";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useDispatch, useSelector } from "react-redux";
-import { login } from "../features/auth/authSlice";
+import axios from "axios"; // Import axios
+import { axiosInstance } from "../utils/axiosConfig";
+import { base_url } from "../utils/base_url";
 
 let schema = Yup.object().shape({
   email: Yup.string()
@@ -12,35 +13,58 @@ let schema = Yup.object().shape({
     .required("Email is Required"),
   password: Yup.string().required("Password is Required"),
 });
+
 const Login = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const formik = useFormik({
     initialValues: {
       email: "",
       password: "",
     },
     validationSchema: schema,
-    onSubmit: (values) => {
-      dispatch(login(values));
+    onSubmit: async (values) => {
+      setLoading(true);
+      try {
+        const response = await axiosInstance.post(`${base_url}Auth/login`, values);
+
+        const data = response.data;
+
+        if (response.status === 200) {
+          // If login is successful, store the token and navigate to the admin page
+          localStorage.setItem("user", JSON.stringify(data)); // Assuming your backend returns a JWT token
+         
+          if(data.role==='Vendor'){
+            navigate("/vendor");
+          }
+          else if(data.role==='Administrator'){
+            navigate("/administrator");
+            }
+          else{
+            navigate("/csr");
+          }
+
+
+        } else {
+          setErrorMessage(data.message || "Login failed. Please try again.");
+        }
+      } catch (error) {
+        setErrorMessage("Something went wrong. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
     },
   });
 
-  const authState = useSelector((state) => state);
-
-  const { user, isError, isSuccess, isLoading, message } = authState.auth;
-
   useEffect(() => {
-    if (isSuccess) {
-      navigate("admin");
-    } else {
-      navigate("");
-    }
-    // eslint-disable-next-line
-  }, [user, isError, isSuccess, isLoading]);
+    // Clear the error message when the form values change
+    setErrorMessage("");
+  }, [formik.values]);
 
   return (
-    <div className="py-5" style={{ background: "#ffd333", minHeight: "100vh" }}>
+    <div className="py-5" style={{ background: "#488A99", minHeight: "100vh" }}>
       <br />
       <br />
       <br />
@@ -50,7 +74,7 @@ const Login = () => {
         <h3 className="text-center title">Login</h3>
         <p className="text-center">Login to your account to continue.</p>
         <div className="error text-center">
-          {message.message === "Rejected" ? "You are not an Admin" : ""}
+          {errorMessage}
         </div>
         <form action="" onSubmit={formik.handleSubmit}>
           <CustomInput
@@ -68,7 +92,7 @@ const Login = () => {
           <CustomInput
             type="password"
             label="Password"
-            id="pass"
+            id="pass"s
             name="password"
             onChng={formik.handleChange("password")}
             onBlr={formik.handleBlur("password")}
@@ -81,9 +105,10 @@ const Login = () => {
           <button
             className="border-0 px-3 py-2 text-white fw-bold w-100 text-center text-decoration-none fs-5"
             type="submit"
-            style={{ background: "#ffd333" }}
+            style={{ background: "#488A99" }}
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>

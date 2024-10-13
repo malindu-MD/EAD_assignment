@@ -44,7 +44,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 3. Configure JWT Authentication
+// 2. Configure JWT Authentication
 var secret = builder.Configuration.GetSection("JwtSettings:Secret").Value;
 var key = Encoding.ASCII.GetBytes(secret);
 
@@ -67,20 +67,23 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// 4. Register Services and Helpers
+// 3. Register Services and Helpers only once
 builder.Services.AddSingleton<JwtHelper>(new JwtHelper(secret));
 builder.Services.AddSingleton<PasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IVendorService, VendorService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddHostedService<StockCheckService>();
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Configure Swagger for API documentation and Bearer authentication
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ecommerce API", Version = "v1" });
 
-    // Configure Swagger to accept Bearer tokens
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
@@ -112,18 +115,6 @@ builder.Services.AddSwaggerGen(c =>
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// 4. Register Services and Helpers
-builder.Services.AddSingleton<JwtHelper>(new JwtHelper(secret));
-builder.Services.AddSingleton<PasswordHasher>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<INotificationService, NotificationService>();
-builder.Services.AddScoped<IVendorService, VendorService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddHostedService<StockCheckService>();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -135,11 +126,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// 2. Use the CORS policy globally
+// 4. Use the CORS policy globally
 app.UseCors("CorsPolicy");
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();

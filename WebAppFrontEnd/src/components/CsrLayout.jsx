@@ -25,7 +25,7 @@ import { useSelector } from "react-redux";
 
 const { Header, Sider, Content } = Layout;
 
-const AdminLayout = () => {
+const CsrLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   const {
@@ -61,44 +61,22 @@ const AdminLayout = () => {
             {
               key: "",
               icon: <AiOutlineDashboard className="fs-4" />,
-              label: "Admin Dashboard",
+              label: "CSR Dashboard",
             },
             {
               key: "catalog",
               icon: <CgUserList className="fs-4" />,
-              label: "Vendors",
+              label: "Customers",
               children: [
                 {
-                  key: "vendor",
-                  icon: <AiOutlineAppstoreAdd className="fs-4" />,
-                  label: "Add Vendor",
-                },
-                {
-                  key: "vendor-list",
-                  icon: <AiOutlineUnorderedList className="fs-4" />,
-                  label: "Vendor List",
+                  key: "customers",
+                  icon: <CgUserList className="fs-4" />,
+                  label: "Customer List",
                 },
                 
               ],
             },
-            {
-                key: "catalog",
-                icon: <BiCategoryAlt className="fs-4" />,
-                label: "Category",
-                children: [
-                  {
-                    key: "category",
-                    icon: <AiOutlineAppstoreAdd className="fs-4" />,
-                    label: "Add Category",
-                  },
-                  {
-                    key: "category-list",
-                    icon: <AiOutlineUnorderedList className="fs-4" />,
-                    label: "Category List",
-                  },
-                 
-                ],
-              },
+           
             {
               key: "main-orders",
               icon: <FaClipboardList className="fs-4" />,
@@ -200,4 +178,4 @@ const AdminLayout = () => {
     </Layout>
   );
 };
-export default AdminLayout;
+export default CsrLayout;

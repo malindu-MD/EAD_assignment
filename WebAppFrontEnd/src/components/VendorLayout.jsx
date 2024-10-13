@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
-
 import {
   AiOutlineDashboard,
   AiOutlineAppstoreAdd,
@@ -8,37 +7,60 @@ import {
 } from "react-icons/ai";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { CgUserList } from "react-icons/cg";
-import { SiBrandfolder } from "react-icons/si";
 import { BiCategoryAlt } from "react-icons/bi";
-import { MdOutlineColorLens } from "react-icons/md";
-import { FaClipboardList, FaMicroblog } from "react-icons/fa";
-import { IoCreateOutline, IoNotificationsSharp } from "react-icons/io5";
+import { FaClipboardList } from "react-icons/fa";
+import { IoNotificationsSharp } from "react-icons/io5";
 import { RiCouponLine } from "react-icons/ri";
-import { VscRequestChanges } from "react-icons/vsc";
 import { CiLogout } from "react-icons/ci";
-import { Layout, Menu, theme } from "antd";
-
+import { Layout, Menu, theme, Modal } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 
 const { Header, Sider, Content } = Layout;
 
-const AdminLayout = () => {
+const VendorLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, message: "You have a new order from John Doe.", read: false },
+    { id: 2, message: "Your order #1234 has been shipped.", read: false },
+    { id: 3, message: "New feedback received from Jane Smith.", read: false },
+  ]);
 
   const {
     token: { colorBgContainer },
   } = theme.useToken();
 
   const navigate = useNavigate();
-
   const authState = useSelector((state) => state?.auth?.user);
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+    markAllAsRead();
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  const markAllAsRead = () => {
+    setNotifications((prevNotifications) =>
+      prevNotifications.map((notification) => ({
+        ...notification,
+        read: true,
+      }))
+    );
+  };
 
   return (
     <Layout onContextMenu={(e) => e.preventDefault()}>
-      <Sider trigger={null} collapsible collapsed={collapsed}   >
+      <Sider trigger={null} collapsible collapsed={collapsed}>
         <div className="logo" style={{ backgroundColor: "#488A99" }}>
           <h2 className="text-white fs-5 text-center py-3 mb-0">
             <span className="sm-logo">BM</span>
@@ -61,55 +83,35 @@ const AdminLayout = () => {
             {
               key: "",
               icon: <AiOutlineDashboard className="fs-4" />,
-              label: "Admin Dashboard",
+              label: "Vendor Dashboard",
             },
             {
               key: "catalog",
-              icon: <CgUserList className="fs-4" />,
-              label: "Vendors",
+              icon: <BiCategoryAlt className="fs-4" />,
+              label: "Products",
               children: [
                 {
-                  key: "vendor",
+                  key: "product",
                   icon: <AiOutlineAppstoreAdd className="fs-4" />,
-                  label: "Add Vendor",
+                  label: "Add Product",
                 },
                 {
-                  key: "vendor-list",
+                  key: "product-list",
                   icon: <AiOutlineUnorderedList className="fs-4" />,
-                  label: "Vendor List",
+                  label: "Product List",
                 },
-                
               ],
             },
             {
-                key: "catalog",
-                icon: <BiCategoryAlt className="fs-4" />,
-                label: "Category",
-                children: [
-                  {
-                    key: "category",
-                    icon: <AiOutlineAppstoreAdd className="fs-4" />,
-                    label: "Add Category",
-                  },
-                  {
-                    key: "category-list",
-                    icon: <AiOutlineUnorderedList className="fs-4" />,
-                    label: "Category List",
-                  },
-                 
-                ],
-              },
-            {
-              key: "main-orders",
+              key: "vendor-orders",
               icon: <FaClipboardList className="fs-4" />,
               label: "Customer Orders",
             },
             {
               key: "marketing",
               icon: <RiCouponLine className="fs-4" />,
-              label: "Inventory",
+              label: "Customer Feedback",
             },
-          
             {
               key: "signout",
               icon: <CiLogout className="fs-4" />,
@@ -134,10 +136,10 @@ const AdminLayout = () => {
             }
           )}
           <div className="d-flex gap-4 align-items-center">
-            <div className="position-relative">
+            <div className="position-relative" onClick={showModal} style={{ cursor: "pointer" }}>
               <IoNotificationsSharp className="fs-4" />
               <span className="badge bg-warning rounded-circle p-1 position-absolute">
-                3
+                {notifications.filter((n) => !n.read).length}
               </span>
             </div>
 
@@ -157,9 +159,9 @@ const AdminLayout = () => {
                 aria-expanded="false"
               >
                 <h5 className="mb-0">
-                  {/* {authState?.firstName + " " + authState?.lastName} */}
+                  {authState?.firstName + " " + authState?.lastName}
                 </h5>
-                {/* <p className="mb-0">{authState?.email}</p> */}
+                <p className="mb-0">{authState?.email}</p>
               </div>
               <div className="dropdown-menu" aria-labelledby="dropdownMenuLink">
                 <li>
@@ -168,7 +170,7 @@ const AdminLayout = () => {
                     style={{ height: "auto", lineHeight: "20px" }}
                     to="/"
                   >
-                    View Profle
+                    View Profile
                   </Link>
                 </li>
               </div>
@@ -195,9 +197,37 @@ const AdminLayout = () => {
             theme="light"
           />
           <Outlet />
+
+          {/* Notification Modal */}
+          <Modal
+            title="Notifications"
+            visible={isModalVisible}
+            onOk={handleOk}
+            onCancel={handleCancel}
+          >
+            {notifications.map((notification) => (
+              <div key={notification.id} className="notification-item">
+                {notification.read ? (
+                  <CheckCircleOutlined style={{ color: "green", marginRight: 8 }} />
+                ) : (
+                  <ExclamationCircleOutlined style={{ color: "red", marginRight: 8 }} />
+                )}
+                <p
+                  style={{
+                    textDecoration: notification.read ? "line-through" : "none",
+                    color: notification.read ? "gray" : "black",
+                  }}
+                >
+                  {notification.message}
+                </p>
+                <hr />
+              </div>
+            ))}
+          </Modal>
         </Content>
       </Layout>
     </Layout>
   );
 };
-export default AdminLayout;
+
+export default VendorLayout;

@@ -1,10 +1,8 @@
 import { Navigate } from "react-router-dom";
 
-export const PrivateRoutes = ({ children }) => {
-  const getTokenFromLocalStorage = JSON.parse(localStorage.getItem("user"));
-  return getTokenFromLocalStorage?.token === undefined ? (
-    children
-  ) : (
-    <Navigate to="/" replace={true} />
-  );
+export const PrivateRoutes = ({ children, allowedRoles }) => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const hasAccess = user && allowedRoles.includes(user.role);
+
+  return hasAccess ? children : <Navigate to="/" replace={true} />;
 };

@@ -1,4 +1,11 @@
-﻿using System.Security.Claims;
+﻿/***************************************************************************
+ * File: VendorController.cs
+ * Description: Controller responsible for managing vendor-related operations 
+ *              such as creating vendors, updating vendor details, adding 
+ *              comments and ratings, and retrieving vendor information.
+ ***************************************************************************/
+
+using System.Security.Claims;
 using ecommerceWebServicess.DTOs;
 using ecommerceWebServicess.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -11,20 +18,17 @@ namespace ecommerceWebServicess.Controllers
     [ApiController]
     public class VendorController : ControllerBase
     {
-
         private readonly IVendorService _vendorService;
 
-
+        // Constructor to inject the vendor service
         public VendorController(IVendorService vendorService)
         {
             _vendorService = vendorService;
         }
 
-
-
-        // POST: api/Vendor/Create
+        // POST: Create a new vendor (Admin-only)
         [HttpPost("Create")]
-        [Authorize(Roles = "Administrator")]  // Only administrators can create vendors
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> CreateVendor([FromBody] CreateVendorDto vendorDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -33,7 +37,7 @@ namespace ecommerceWebServicess.Controllers
             return CreatedAtAction(nameof(GetVendorById), new { id = vendor.Id }, vendor);
         }
 
-        // GET: api/Vendor/{id}
+        // GET: Retrieve a vendor by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetVendorById(string id)
         {
@@ -43,10 +47,9 @@ namespace ecommerceWebServicess.Controllers
             return Ok(vendor);
         }
 
-
-        // PUT: api/Vendor/{id}
+        // PUT: Update vendor details (Admin-only)
         [HttpPut("{id}")]
-        [Authorize(Roles = "Administrator")]  // Only administrators can update vendor details
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> UpdateVendor(string id, [FromBody] UpdateVendorDto vendorDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -57,11 +60,9 @@ namespace ecommerceWebServicess.Controllers
             return Ok("Vendor updated successfully.");
         }
 
-
-
-        // POST: api/Vendor/{vendorId}/AddComment
+        // POST: Add a comment and rating for a vendor (Customer-only)
         [HttpPost("{vendorId}/AddComment")]
-        [Authorize(Roles = "Customer")]  // Only customers can leave comments and ratings
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> AddCommentAndRating(string vendorId, [FromBody] AddVendorCommentDto commentDto)
         {
             var success = await _vendorService.AddCommentAndRatingAsync(vendorId, commentDto);
@@ -70,14 +71,12 @@ namespace ecommerceWebServicess.Controllers
             return Ok("Comment and rating added successfully.");
         }
 
-
-        // PUT: api/Vendor/{vendorId}/EditComment
+        // PUT: Edit a customer's comment and rating for a vendor (Customer-only)
         [HttpPut("{vendorId}/EditComment")]
-        [Authorize(Roles = "Customer")]  // Only customers can edit their comments and ratings
+        [Authorize(Roles = "Customer")]
         public async Task<IActionResult> EditCommentAndRating(string vendorId, [FromBody] AddVendorCommentDto updatedCommentDto)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;  // Get the current user's ID
-
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null) return Unauthorized("User ID not found.");
 
             var success = await _vendorService.EditCommentAndRatingAsync(vendorId, userId, updatedCommentDto);
@@ -86,46 +85,32 @@ namespace ecommerceWebServicess.Controllers
             return Ok("Comment and rating updated successfully.");
         }
 
-
-
+        // GET: Retrieve all comments for a vendor
         [HttpGet("{vendorId}/Comments")]
         public async Task<IActionResult> GetVendorComments(string vendorId)
         {
             var comments = await _vendorService.GetVendorCommentsAsync(vendorId);
-            if (comments == null)
-            {
-                return NotFound($"Vendor with ID {vendorId} not found.");
-            }
+            if (comments == null) return NotFound($"Vendor with ID {vendorId} not found.");
 
             return Ok(comments);
         }
 
-
-        // GET: api/Vendor/{vendorId}/Rating
+        // GET: Retrieve the average rating for a vendor
         [HttpGet("{vendorId}/Rating")]
         public async Task<IActionResult> GetVendorRating(string vendorId)
         {
             var rating = await _vendorService.GetVendorRatingAsync(vendorId);
-            if (rating == null)
-            {
-                return NotFound($"Vendor with ID {vendorId} not found.");
-            }
+            if (rating == null) return NotFound($"Vendor with ID {vendorId} not found.");
 
             return Ok(new { AverageRating = rating });
         }
 
-
-        // GET: api/Vendor
+        // GET: Retrieve all vendors
         [HttpGet]
         public async Task<IActionResult> GetAllVendors()
         {
             var vendors = await _vendorService.GetAllVendorsAsync();
             return Ok(vendors);
         }
-
-
-
-
-
     }
 }
