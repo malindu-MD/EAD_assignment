@@ -84,6 +84,7 @@ function App() {
           <Route path='main-orders/:orderId' element={<MainOrderItem/>}/>
           <Route path="product-list" element={<ProductList />} />
           <Route path="product" element={<AddProduct />} />
+          <Route path="product/:getProductId" element={<AddProduct />} />
 
 
 

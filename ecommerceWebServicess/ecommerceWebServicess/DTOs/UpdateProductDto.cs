@@ -1,4 +1,6 @@
-﻿namespace ecommerceWebServicess.DTOs
+﻿using MongoDB.Bson.Serialization.Attributes;
+
+namespace ecommerceWebServicess.DTOs
 {
     public class UpdateProductDto
     {
@@ -10,6 +12,11 @@
         public string CategoryId { get; set; }
 
         public double Price { get; set; }
+
+
+        public int Stock { get; set; }
+
+        public int StockThreshold { get; set; }
 
         public string ImageUrl { get; set; }
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate ,useParams} from "react-router-dom";
 import CustomInput from "../components/CustomInput";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
@@ -31,7 +31,7 @@ const uploadPreset = "my_preset"; // Replace with your Cloudinary upload preset
 const AddProduct = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const getProductId = location.pathname.split("/")[3];
+  const { getProductId } = useParams();
 
   const [categories, setCategories] = useState([]);
   const [color, setColor] = useState([]);
@@ -46,15 +46,18 @@ const AddProduct = () => {
 
        
 
-        const categoriesRes = await axios.get("http://localhost:5272/api/category/activecategory");
+        const categoriesRes = await axiosInstance.get(`${base_url}category/activecategory`,config());
         
       
         setCategories(categoriesRes.data);
      
         
         if (getProductId) {
-          const productRes = await axios.get(`http://localhost:8000/api/products/${getProductId}`);
+          console.log(getProductId);
+          const productRes = await axiosInstance.get(`${base_url}product/${getProductId}`,config());
           setProductDetails(productRes.data);
+          setImage(productRes.data.imageUrl);
+          setIsImageUploaded(true);
          
         }
       } catch (error) {
@@ -68,16 +71,14 @@ const AddProduct = () => {
   useEffect(() => {
     if (productDetails) {
       formik.setValues({
-        Name: productDetails.Name || "",
+        Name: productDetails.name || "",
         Description: productDetails.description || "",
         price: productDetails.price || "",
         brand: productDetails.brand || "",
-        stock: productDetails.stock || "",
-        category: productDetails.category || "",
-        tags: productDetails.tags || "",
-        color: color || [],
-        quantity: productDetails.quantity || "",
-        image: image || "",
+        stock: productDetails.stockThreshold || "",
+        category: productDetails.categoryId || "",
+        quantity: productDetails.stock || "",
+        image:productDetails.imageUrl || "",
       });
     }
   }, [productDetails]);
@@ -85,22 +86,32 @@ const AddProduct = () => {
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      Name:"njn",
-      Description: "ddsfs",
+      Name: productDetails?.name || "",
+      Description: productDetails?.description || "",
       price: productDetails?.price || "",
-      brand: productDetails?.brand || "",
-      stock: "apilage",
-      category: productDetails?.category || "",
-      tags: productDetails?.tags || "",
-      color: color || [],
-      quantity: "jjj",
-      image: image || "",
+      stock:  productDetails?.stockThreshold || "",
+      category: productDetails?.categoryId || "",
+      quantity:productDetails?.stock || "",
+      image:productDetails?.imageUrl || "",
     },
     validationSchema: schema,
     onSubmit: async (values) => {
       try {
         if (getProductId) {
-          await axios.put(`http://localhost:8000/api/products/${getProductId}`, values);
+          await axiosInstance.put(`${base_url}product/${getProductId}`,{
+
+            
+              name: values.Name,
+              description: values.Description,
+              categoryId: values.category,
+              price:values.price ,
+              stock: values.quantity,
+              stockThreshold: values.stock,
+              imageUrl: image,
+              isActive: productDetails.isActive
+            
+
+          },config());
           toast.success("Product Updated Successfully");
         } else {
           await axiosInstance.post(
@@ -112,14 +123,14 @@ const AddProduct = () => {
               price:values.price ,
               stock: values.quantity,
               stockThreshold: values.stock,
-              imageUrl: image.url,
+              imageUrl: image,
               isActive: true
             },
             config()
           );
           toast.success("Product Added Successfully");
         }
-        navigate("/admin/product-list");
+        navigate("/vendor/product-list");
       } catch (error) {
         toast.error("Something went wrong!");
       }
@@ -139,7 +150,7 @@ const AddProduct = () => {
     try {
       const res = await axios.post(cloudinaryUrl, formData);
       const uploadedImage = { url: res.data.secure_url, public_id: res.data.public_id };
-      setImage(uploadedImage); // Replace with the new image
+      setImage(uploadedImage.url); // Replace with the new image
       setIsImageUploaded(true); // Mark image as uploaded
       toast.success("Image uploaded successfully");
      
@@ -165,7 +176,7 @@ const AddProduct = () => {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center">
-        <h3 className="mb-4 title">{getProductId ? "Edit" : "Edit"} Product</h3>
+        <h3 className="mb-4 title">{getProductId ? "Edit" : "Add"} Product</h3>
         <div>
           {getProductId && (
             <button className="bg-transparent border-0 mb-0 fs-6 d-flex gap-3 align-items-center" onClick={goBack}>
@@ -189,7 +200,14 @@ const AddProduct = () => {
           <div className="error">{formik.touched.Name && formik.errors.Name}</div>
 
           <div className="">
-            <ReactQuill theme="snow" name="Description" onChange={formik.handleChange("Description")} value={formik.values.Description} placeholder="Enter Product Description" />
+          <CustomInput
+            type="text"
+            label="Enter Product Description"
+            name="Description"
+            onChng={formik.handleChange("Description")}
+            onBLr={formik.handleBlur("Description")}
+            val={formik.values.Description}
+          />
             <div className="error">{formik.touched.Description && formik.errors.Description}</div>
           </div>
 
@@ -214,11 +232,20 @@ const AddProduct = () => {
 
           <CustomInput type="number" label="Enter Product Stock" name="quantity" onChng={formik.handleChange("quantity")} onBLr={formik.handleBlur("quantity")} val={formik.values.quantity} />
           <div className="error">{formik.touched.quantity && formik.errors.quantity}</div>
+          
+          
 
-          <CustomInput type="number" label="Enter Product Stock Threshold" name="stock" onChng={formik.handleChange("stock")} onBLr={formik.handleBlur("stock")} val={formik.values.stock} />
-          <div className="error">{formik.touched.stock && formik.errors.stock}</div>
+<CustomInput type="number" label="Enter Product Stock Threshold" name="stock" onChng={formik.handleChange("stock")} onBLr={formik.handleBlur("stock")} val={formik.values.stock} />
+<div className="error">{formik.touched.stock && formik.errors.stock}</div>
+
+
+
+
+     
 
          
+
+          
           <div className="bg-white border-1 p-5 text-center">
             <Dropzone onDrop={(acceptedFiles) => handleImageUpload(acceptedFiles)}>
               {({ getRootProps, getInputProps }) => (
@@ -233,15 +260,22 @@ const AddProduct = () => {
           </div>
 
           {image && (
-            <div className="position-relative mt-3">
-              <button
-                type="button"
-                onClick={() => handleImageDelete()}
-                className="btn-close position-absolute"
-                style={{ top: "10px", right: "10px" }}
-              ></button>
-              <img src={image.url} alt="productImg" width={200} height={200} />
-            </div>
+           <div className="position-relative mt-3" style={{ textAlign: 'center' }}>
+           <button
+             type="button"
+             onClick={() => handleImageDelete()}
+             className="btn-close position-absolute"
+             style={{ top: "10px", right: "10px" }}
+           ></button>
+           <img 
+             src={image} 
+             alt="productImg" 
+             width={350} 
+             height={300} 
+             style={{ display: 'inline-block' }} // Optional: keeps the image inline
+           />
+         </div>
+         
           )}
 
 

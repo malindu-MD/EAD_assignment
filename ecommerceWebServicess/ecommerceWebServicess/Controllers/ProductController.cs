@@ -56,7 +56,7 @@ namespace ecommerceWebServicess.Controllers
         // PUT: Update an existing product
         [HttpPut("{id}")]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> UpdateProduct(string id, [FromForm] UpdateProductDto updateProductDto)
+        public async Task<IActionResult> UpdateProduct(string id, UpdateProductDto updateProductDto)
         {
             if (!ModelState.IsValid)
             {

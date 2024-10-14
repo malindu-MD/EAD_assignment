@@ -28,6 +28,7 @@ const VendorLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [userdata,setUserdata]=useState(null);
   const [loadingNotifications, setLoadingNotifications] = useState(true); // Loading state for notifications
 
   const {
@@ -39,6 +40,9 @@ const VendorLayout = () => {
 
   useEffect(() => {
     // Fetch notifications on component mount
+    const user = JSON.parse(localStorage.getItem("user"));
+    setUserdata(user);
+
     const fetchNotifications = async () => {
       try {
         const response = await axiosInstance.get(`${base_url}Notification`, config());
@@ -96,7 +100,7 @@ const VendorLayout = () => {
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <div className="logo" style={{ backgroundColor: "#488A99" }}>
           <h2 className="text-white fs-5 text-center py-3 mb-0">
-            <span className="sm-logo">BM</span>
+            <span className="sm-logo">BC</span>
             <span className="lg-logo">Biz Corner</span>
           </h2>
         </div>
@@ -141,7 +145,7 @@ const VendorLayout = () => {
               label: "Customer Orders",
             },
             {
-              key: "marketing",
+              key: "customer-feedback",
               icon: <RiCouponLine className="fs-4" />,
               label: "Customer Feedback",
             },
@@ -181,7 +185,7 @@ const VendorLayout = () => {
                 <img
                   width={32}
                   height={32}
-                  src="https://media.licdn.com/dms/image/D5603AQF1o-LOJxT_w/profile-displayphoto-shrink_800_800/0/1664684206755?e=1688601600&v=beta&t=2rtqrrVZMf-oqOjGIgZiGbx0qpGDjGZMn576ZBfQWb0"
+                  src="https://res.cloudinary.com/dhf95uhla/image/upload/v1728892327/jwjbcjcdqiku9kqfotgo.png"
                   alt="adminPic"
                 />
               </div>
@@ -192,9 +196,9 @@ const VendorLayout = () => {
                 aria-expanded="false"
               >
                 <h5 className="mb-0">
-                  {authState?.firstName + " " + authState?.lastName}
+                  {"Hi " +userdata?.name}
                 </h5>
-                <p className="mb-0">{authState?.email}</p>
+                
               </div>
               <div className="dropdown-menu" aria-labelledby="dropdownMenuLink">
                 <li>

@@ -60,6 +60,8 @@ namespace ecommerceWebServicess.Services
             product.Description = updateProductDto.Description;
             product.CategoryId = updateProductDto.CategoryId;
             product.Price = updateProductDto.Price;
+            product.Stock=updateProductDto.Stock;
+            product.StockThreshold = updateProductDto.StockThreshold;
             product.ImageUrl = updateProductDto.ImageUrl;
             product.DateModified = DateTime.UtcNow;
             product.IsActive = updateProductDto.IsActive;
