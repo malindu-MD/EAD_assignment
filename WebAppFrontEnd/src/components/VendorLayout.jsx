@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import {
   AiOutlineDashboard,
@@ -9,25 +9,26 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { BiCategoryAlt } from "react-icons/bi";
 import { FaClipboardList } from "react-icons/fa";
+import { toast } from "react-toastify";
 import { IoNotificationsSharp } from "react-icons/io5";
 import { RiCouponLine } from "react-icons/ri";
 import { CiLogout } from "react-icons/ci";
-import { Layout, Menu, theme, Modal } from "antd";
+import { Layout, Menu, theme, Modal, Button } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import axios from 'axios'; // Make sure to import axios
+import { axiosInstance, config } from "../utils/axiosConfig";
+import { base_url } from "../utils/base_url";
 
 const { Header, Sider, Content } = Layout;
 
 const VendorLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 1, message: "You have a new order from John Doe.", read: false },
-    { id: 2, message: "Your order #1234 has been shipped.", read: false },
-    { id: 3, message: "New feedback received from Jane Smith.", read: false },
-  ]);
+  const [notifications, setNotifications] = useState([]);
+  const [loadingNotifications, setLoadingNotifications] = useState(true); // Loading state for notifications
 
   const {
     token: { colorBgContainer },
@@ -35,6 +36,22 @@ const VendorLayout = () => {
 
   const navigate = useNavigate();
   const authState = useSelector((state) => state?.auth?.user);
+
+  useEffect(() => {
+    // Fetch notifications on component mount
+    const fetchNotifications = async () => {
+      try {
+        const response = await axiosInstance.get(`${base_url}Notification`, config());
+        setNotifications(response.data);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      } finally {
+        setLoadingNotifications(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
 
   const showModal = () => {
     setIsModalVisible(true);
@@ -53,9 +70,25 @@ const VendorLayout = () => {
     setNotifications((prevNotifications) =>
       prevNotifications.map((notification) => ({
         ...notification,
-        read: true,
+        isRead: true,
       }))
     );
+  };
+
+  // Function to mark a single notification as read
+  const markNotificationAsRead = async (notification) => {
+    try {
+      await axiosInstance.put(`${base_url}Notification/${notification.id}/read`, {}, config());
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((n) =>
+          n.id === notification.id ? { ...n, isRead: true } : n
+        )
+      );
+      toast.success("Notification marked as read.");
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      toast.error("Error marking notification as read.");
+    }
   };
 
   return (
@@ -139,7 +172,7 @@ const VendorLayout = () => {
             <div className="position-relative" onClick={showModal} style={{ cursor: "pointer" }}>
               <IoNotificationsSharp className="fs-4" />
               <span className="badge bg-warning rounded-circle p-1 position-absolute">
-                {notifications.filter((n) => !n.read).length}
+                {notifications.filter((n) => !n.isRead).length}
               </span>
             </div>
 
@@ -148,7 +181,7 @@ const VendorLayout = () => {
                 <img
                   width={32}
                   height={32}
-                  src="https://media.licdn.com/dms/image/D5603AQF1oO-LOJxT_w/profile-displayphoto-shrink_800_800/0/1664684206755?e=1688601600&v=beta&t=2rtqrrVZMf-oqOjGIgZiGbx0qpGDjGZMn576ZBfQWb0"
+                  src="https://media.licdn.com/dms/image/D5603AQF1o-LOJxT_w/profile-displayphoto-shrink_800_800/0/1664684206755?e=1688601600&v=beta&t=2rtqrrVZMf-oqOjGIgZiGbx0qpGDjGZMn576ZBfQWb0"
                   alt="adminPic"
                 />
               </div>
@@ -205,24 +238,38 @@ const VendorLayout = () => {
             onOk={handleOk}
             onCancel={handleCancel}
           >
-            {notifications.map((notification) => (
-              <div key={notification.id} className="notification-item">
-                {notification.read ? (
-                  <CheckCircleOutlined style={{ color: "green", marginRight: 8 }} />
-                ) : (
-                  <ExclamationCircleOutlined style={{ color: "red", marginRight: 8 }} />
-                )}
-                <p
-                  style={{
-                    textDecoration: notification.read ? "line-through" : "none",
-                    color: notification.read ? "gray" : "black",
-                  }}
-                >
-                  {notification.message}
-                </p>
-                <hr />
-              </div>
-            ))}
+            {loadingNotifications ? (
+              <p>Loading notifications...</p>
+            ) : (
+              notifications.map((notification) => (
+                <div key={notification.id} className="notification-item">
+                  {notification.isRead ? (
+                    <CheckCircleOutlined style={{ color: "green", marginRight: 8 }} />
+                  ) : (
+                    <ExclamationCircleOutlined style={{ color: "red", marginRight: 8 }} />
+                  )}
+                  <p
+                    style={{
+                      textDecoration: notification.isRead ? "line-through" : "none",
+                      color: notification.isRead ? "gray" : "black",
+                    }}
+                  >
+                    {notification.message}
+                  </p>
+                  <p style={{ fontSize: "0.8rem", color: "gray" }}>
+                    {new Date(notification.dateCreated).toLocaleString()}
+                  </p>
+                  <Button
+                    onClick={() => markNotificationAsRead(notification)}
+                    type="link"
+                    disabled={notification.isRead} // Disable if already read
+                  >
+                    {notification.isRead ? "Read" : "Mark as Read"}
+                  </Button>
+                  <hr />
+                </div>
+              ))
+            )}
           </Modal>
         </Content>
       </Layout>
@@ -231,3 +278,4 @@ const VendorLayout = () => {
 };
 
 export default VendorLayout;
+ 

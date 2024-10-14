@@ -60,5 +60,31 @@ namespace ecommerceWebServicess.Services
         {
             throw new NotImplementedException();
         }
+
+
+        // New function to mark a notification as read by ID
+        public async Task<bool> MarkNotificationAsReadAsync(string notificationId)
+        {
+            // Find the notification first
+            var notification = await _notificationCollection.Find(n => n.Id == notificationId).FirstOrDefaultAsync();
+
+            // If the notification does not exist, return false
+            if (notification == null)
+            {
+                return false;
+            }
+
+            // Determine the new value of IsRead
+            bool newIsReadValue = !notification.IsRead; // Toggle the current value
+
+            // Update the IsRead status
+            var filter = Builders<Notification>.Filter.Eq(n => n.Id, notificationId);
+            var update = Builders<Notification>.Update.Set(n => n.IsRead, newIsReadValue);
+
+            var result = await _notificationCollection.UpdateOneAsync(filter, update);
+
+            // Return true if the notification was updated, false if not found
+            return result.ModifiedCount > 0;
+        }
     }
 }

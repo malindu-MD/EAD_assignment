@@ -140,7 +140,7 @@ const VendorOrders = () => {
       ostatus: order.status,
       oitem: (
         <Link
-          to={`/vendor/vendor-orders/${order.id}`}
+          to={`/vendor/vendor-orders/${order.id}/${order.orderId}`}
           style={{
             backgroundColor: "#0c0954", // Set your desired background color
             padding: "5px 10px", // Add some padding for better appearance

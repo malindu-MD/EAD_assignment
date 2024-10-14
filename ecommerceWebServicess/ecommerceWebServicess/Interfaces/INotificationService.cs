@@ -33,5 +33,8 @@ namespace ecommerceWebServicess.Interfaces
         /// <param name="userId">The ID of the user.</param>
         /// <returns>A collection of Notification objects.</returns>
         Task<IEnumerable<Notification>> GetNotificationByUserID(string userId);
+
+
+        Task<bool> MarkNotificationAsReadAsync(string notificationId);
     }
 }

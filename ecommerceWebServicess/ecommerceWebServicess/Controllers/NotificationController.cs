@@ -3,6 +3,7 @@
  * Description: Provides API endpoints for managing notifications by user ID.
  ***************************************************************************/
 
+using System.Security.Claims;
 using ecommerceWebServicess.Interfaces;
 using ecommerceWebServicess.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -25,13 +26,14 @@ namespace ecommerceWebServicess.Controllers
 
         // GET: api/Notification/{userId}
         // Fetches notifications for a specific user
-        [HttpGet("{userId}")]
+        [HttpGet]
         [Authorize(Roles = "CSR, Administrator, Customer, Vendor")]
-        public async Task<IActionResult> GetNotificationsByUserId(string userId)
+        public async Task<IActionResult> GetNotificationsByUserId()
         {
-            if (string.IsNullOrEmpty(userId))
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
             {
-                return BadRequest("User ID is required.");
+                return Unauthorized("user not authenticated.");
             }
 
             // Get notifications for the given user ID
@@ -43,6 +45,24 @@ namespace ecommerceWebServicess.Controllers
             }
 
             return Ok(notifications);
+        }
+
+        // put api/notification/{notificationId}/read
+        [HttpPut("{notificationId}/read")]
+        [Authorize(Roles = "CSR, Administrator, Customer, Vendor")]
+        public async Task<IActionResult> MarkNotificationAsRead(string notificationId)
+        {
+            // Call the service to mark the notification as read
+            var result = await _notificationService.MarkNotificationAsReadAsync(notificationId);
+
+            if (result)
+            {
+                return Ok(new { message = "Notification marked as read successfully." });
+            }
+            else
+            {
+                return NotFound(new { message = "Notification not found." });
+            }
         }
     }
 }
