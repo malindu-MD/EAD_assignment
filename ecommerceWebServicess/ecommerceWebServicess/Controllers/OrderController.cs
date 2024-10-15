@@ -102,9 +102,13 @@ namespace ecommerceWebServicess.Controllers
         // PUT: Cancel an order (CSR/Admin only)
         [HttpPut("{id}/cancel")]
         [Authorize(Roles = "CSR,Administrator")]
-        public async Task<IActionResult> CancelOrder(string id, [FromBody] string cancellationNote)
+        public async Task<IActionResult> CancelOrder(string id, [FromBody] CancellationRequest cancellationRequest )
         {
-            var result = await _orderService.CancelOrderAsync(id, cancellationNote);
+            if (cancellationRequest == null || string.IsNullOrEmpty(cancellationRequest.CancellationNote))
+            {
+                return BadRequest("Cancellation note is required.");
+            }
+            var result = await _orderService.CancelOrderAsync(id, cancellationRequest.CancellationNote);
             if (!result) return NotFound();
             return NoContent();
         }

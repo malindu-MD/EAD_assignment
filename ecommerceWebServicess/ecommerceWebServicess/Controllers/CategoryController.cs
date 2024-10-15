@@ -107,7 +107,7 @@ namespace ecommerceWebServicess.Controllers
 
         // POST: api/Activate/{id}
         // Activates a category
-        [HttpPost("Activate/{id}")]
+        [HttpPatch("Activate/{id}")]
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> ActivateCategory(string id)
         {
@@ -118,7 +118,7 @@ namespace ecommerceWebServicess.Controllers
 
         // POST: api/Deactivate/{id}
         // Deactivates a category
-        [HttpPost("Deactivate/{id}")]
+        [HttpPatch("Deactivate/{id}")]
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeactivateCategory(string id)
         {

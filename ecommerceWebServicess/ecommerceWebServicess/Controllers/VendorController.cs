@@ -8,6 +8,7 @@
 using System.Security.Claims;
 using ecommerceWebServicess.DTOs;
 using ecommerceWebServicess.Interfaces;
+using ecommerceWebServicess.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -112,5 +113,32 @@ namespace ecommerceWebServicess.Controllers
             var vendors = await _vendorService.GetAllVendorsAsync();
             return Ok(vendors);
         }
+
+
+        [HttpGet("{vendorId}/comment/{userId}")]
+        [Authorize(Roles = "Customer")]
+
+        public async Task<IActionResult> GetCommentByVendorAndUser(string vendorId, string userId)
+        {
+            var comment = await _vendorService.GetCommentByVendorAndUserIdAsync(vendorId, userId);
+            if (comment == null)
+            {
+                return NotFound(); // Return 404 if no comment is found
+            }
+            return Ok(comment); // Return the found comment
+        }
+        [HttpGet("comments/user/{userId}")]
+        public async Task<IActionResult> GetCommentsByUserId(string userId)
+        {
+            var comments = await _vendorService.GetAllCommentsByUserIdAsync(userId);
+            if (comments == null || !comments.Any())
+            {
+                return NotFound(); // Return 404 if no comments found
+            }
+            return Ok(comments); // Return the found comments along with vendor details
+        }
+
+
+
     }
 }

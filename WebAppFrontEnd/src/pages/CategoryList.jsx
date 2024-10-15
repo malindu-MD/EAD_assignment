@@ -1,40 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Table,Switch } from "antd";
+import { Table, Switch } from "antd";
 import { Link } from "react-router-dom";
 import { BiEdit } from "react-icons/bi";
 import { TiDeleteOutline } from "react-icons/ti";
 import CustomModal from "../components/CustomModal";
-import axios from "axios";
-import { base_url } from "../utils/base_url";
 import { axiosInstance, config } from "../utils/axiosConfig";
+import { base_url } from "../utils/base_url";
+import { toast } from "react-toastify";
 
-
-
-const columns = [
-  {
-    title: "Number",
-    dataIndex: "key",
-  },
-  {
-    title: "Category Name",
-    dataIndex: "title",
-    sorter: (a, b) => a.title.length - b.title.length,
-  },
-  {
-    title: "Active",
-    dataIndex: "isActive",
-    render: (isActive, record) => (
-      <Switch
-        checked={isActive}
-        
-      />
-    ),
-  },
-  {
-    title: "Action",
-    dataIndex: "action",
-  },
-];
 
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
@@ -52,42 +25,73 @@ const CategoryList = () => {
 
   // Fetch all categories
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await axiosInstance.get(`${base_url}category`,config());
-        setCategories(response.data);
-        console.log(response.data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
+   
 
     fetchCategories();
   }, []);
 
+  const fetchCategories = async () => {
+    try {
+      const response = await axiosInstance.get(`${base_url}category`, config());
+      setCategories(response.data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
   // Delete category
   const deleteProdCategory = async (id) => {
     try {
-      await axiosInstance.delete(`${base_url}category/${id}`,config());
+      console.log(id);
+      await axiosInstance.delete(`${base_url}category/${id}`, config());
       setCategories(categories.filter((category) => category._id !== id));
       setOpen(false);
+      toast.success("Category deleted successfully");
+      fetchCategories();
     } catch (error) {
       console.error("Error deleting category:", error);
+    }
+  };
+
+  // Toggle active status
+  const handleToggleActive = async (record) => {
+    console.log("Toggling active status for category:", record);
+    const endpoint = record.isActive
+      ? `${base_url}Category/Deactivate/${record.catid}`
+      : `${base_url}Category/Activate/${record.catid}`;
+      
+    try {
+      await axiosInstance.patch(endpoint, config());
+      // Update the state to reflect the new active status
+      setCategories((prevCategories) =>
+        prevCategories.map((category) =>
+          category._id === record.catid
+            ? { ...category, isActive: !record.isActive }
+            : category
+        )
+      );
+
+      fetchCategories();
+      toast.success(`Category ${record.isActive ? "deactivated" : "activated"} successfully`);
+    } catch (error) {
+      console.error("Error updating category status:", error);
     }
   };
 
   const data = categories.map((category, index) => ({
     key: index + 1,
     title: category.name,
+    catid:category.id,
+    isActive: category.isActive,
     action: (
       <>
-        <Link to={`/admin/category/${category._id}`} className="text-success fs-3">
+        <Link to={''} className="text-success fs-3">
           <BiEdit />
         </Link>
 
         <button
           className="ms-3 text-danger fs-3 bg-transparent border-0"
-          onClick={() => showModal(category._id)}
+          onClick={() => showModal(category.id)}
         >
           <TiDeleteOutline />
         </button>
@@ -99,7 +103,38 @@ const CategoryList = () => {
     <div>
       <h3 className="mb-4 title">Product Categories</h3>
       <div>
-        <Table columns={columns} dataSource={data} />
+        <Table 
+          columns={[
+            {
+              title: "Number",
+              dataIndex: "key",
+              align: "center",
+            },
+            {
+              title: "Category Name",
+              dataIndex: "title",
+              align: "center",
+              sorter: (a, b) => a.title.length - b.title.length,
+            },
+            {
+              title: "Active",
+              dataIndex: "isActive",
+              align: "center",
+              render: (isActive, record) => (
+                <Switch    
+                  checked={isActive}
+                  onChange={() => handleToggleActive(record)}
+                />
+              ),
+            },
+            {
+              title: "Action",
+              dataIndex: "action",
+              align: "center",
+            },
+          ]}
+          dataSource={data} 
+        />
       </div>
       <CustomModal
         hideModal={hideModal}

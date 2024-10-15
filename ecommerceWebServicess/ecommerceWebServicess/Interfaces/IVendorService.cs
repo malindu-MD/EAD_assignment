@@ -53,5 +53,14 @@ namespace ecommerceWebServicess.Interfaces
         /// Edits a comment and rating for a specific vendor by a user.
         /// </summary>
         Task<bool> EditCommentAndRatingAsync(string vendorId, string userId, AddVendorCommentDto updatedCommentDto);
+
+
+        Task<VendorComment> GetCommentByVendorAndUserIdAsync(string vendorId, string userId);
+
+
+         Task<IEnumerable<CommentWithVendorDetailsDto>> GetAllCommentsByUserIdAsync(string userId);
+
     }
+
+
 }

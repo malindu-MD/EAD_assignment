@@ -19,13 +19,16 @@ namespace ecommerceWebServicess.Services
         private readonly IMongoCollection<Order> _orderCollection;
         private readonly INotificationService _notificationService;
         private readonly IVendorService _vendorService; // Inject VendorService
+        private readonly IProductService _productService;
 
-        public OrderService(IMongoClient mongoClient, INotificationService notificationService,IVendorService vendorService)
+        public OrderService(IMongoClient mongoClient, INotificationService notificationService,IVendorService vendorService,IProductService productService)
         {
             var database = mongoClient.GetDatabase("ECommerceDB");
             _orderCollection = database.GetCollection<Order>("Orders");
             _notificationService = notificationService;
             _vendorService = vendorService;
+            _productService = productService;   
+
         }
 
         // Cancel an order and send a notification
@@ -37,7 +40,48 @@ namespace ecommerceWebServicess.Services
             if (result.ModifiedCount > 0)
             {
                 var order = await GetOrderByIdAsync(orderId);
-                await _notificationService.SendNotificationAsync(order.UserId, $"Your order has been cancelled. Note: {cancellationNote}", orderId);
+
+                if (order == null) return false; // Ensure the order exists
+
+                // Update the fulfillment status of all order items to Delivered
+                foreach (var item in order.OrderItems)
+                {
+                    if (item.FulfillmentStatus != FulfillmentStatusEnum.Cancelled.ToString()) // Check if the item is not already Cancelled
+                    {
+                        item.FulfillmentStatus = FulfillmentStatusEnum.Cancelled.ToString(); // Change status to Cancelled
+
+                        await _productService.IncreaseStockAsync(item.ProductId, item.Quantity);
+
+
+                        await _notificationService.SendNotificationAsync(item.VendorId, $" Order has been cancelled OrderID-{order.OrderId}");
+
+                    }
+                }
+
+                // Create the update definition for the order items
+
+                // Execute the update operation on the database
+
+                var updateItems = Builders<Order>.Update.Set(o => o.OrderItems, order.OrderItems.Select(item => new OrderItem
+                {
+                    ProductId = item.ProductId,
+                    ProductCode = item.ProductCode,
+                    ProductName = item.ProductName,
+                    ProductPrice = item.ProductPrice,
+                    Quantity = item.Quantity,
+                    VendorId = item.VendorId,
+                    VendorName = item.VendorName,
+                    FulfillmentStatus = Enum.Parse<FulfillmentStatusEnum>(item.FulfillmentStatus),
+                    ImageUrl = item.ImageUrl
+                }).ToList());
+
+                await _orderCollection.UpdateOneAsync(o => o.Id == orderId, updateItems);
+
+                // Send notification to the user
+                await _notificationService.SendNotificationAsync(order.UserId, $"Your order {order.OrderId} has been cancelled. Note: {cancellationNote}");
+
+
+
                 return true;
             }
             return false;
@@ -48,7 +92,7 @@ namespace ecommerceWebServicess.Services
         {
             var orderItems = new List<OrderItem>();
 
-            // Loop through each item in the createOrderDto to get the vendor name
+            // Loop through each item in the createOrderDto to get the vendor name and reduce stock
             foreach (var item in createOrderDto.OrderItems)
             {
                 // Get the vendor name using the VendorService
@@ -67,6 +111,18 @@ namespace ecommerceWebServicess.Services
                     FulfillmentStatus = FulfillmentStatusEnum.Pending,
                     ImageUrl = item.ImageUrl
                 });
+
+                // Reduce stock for the ordered product
+                bool stockReduced = await _productService.ReduceStockAsync(item.ProductId, item.Quantity);
+                if (!stockReduced)
+                {
+                    // Handle stock reduction failure (e.g., log the error, throw an exception, etc.)
+                    throw new Exception($"Failed to reduce stock for product {item.ProductId}");
+                }
+
+                await _notificationService.SendNotificationAsync(item.VendorId, $"New Order Recived For {item.ProductName} ({item.ProductCode})");
+
+                
             }
 
             var order = new Order
@@ -115,6 +171,7 @@ namespace ecommerceWebServicess.Services
         }
 
 
+
         // Get all orders
         public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
         {
@@ -146,17 +203,55 @@ namespace ecommerceWebServicess.Services
         // Mark an order as delivered
         public async Task<bool> MarkOrderAsDeliveredAsync(string orderId)
         {
-            var update = Builders<Order>.Update.Set(o => o.Status, OrderStatus.Fulfilled);
-            var result = await _orderCollection.UpdateOneAsync(o => o.Id == orderId, update);
+            // Update the main order status to Fulfilled
+            var updateOrder = Builders<Order>.Update.Set(o => o.Status, OrderStatus.Fulfilled);
+            var orderUpdateResult = await _orderCollection.UpdateOneAsync(o => o.Id == orderId, updateOrder);
 
-            if (result.ModifiedCount > 0)
+            if (orderUpdateResult.ModifiedCount > 0)
             {
+                // Fetch the order to get the order items
                 var order = await GetOrderByIdAsync(orderId);
-                await _notificationService.SendNotificationAsync(order.UserId, "Your order has been delivered.", orderId);
+                if (order == null) return false; // Ensure the order exists
+
+                // Update the fulfillment status of all order items to Delivered
+                foreach (var item in order.OrderItems)
+                {
+                    if (item.FulfillmentStatus != FulfillmentStatusEnum.Delivered.ToString()) // Check if the item is not already delivered
+                    {
+                        item.FulfillmentStatus = FulfillmentStatusEnum.Delivered.ToString(); // Change status to Delivered
+                    }
+                }
+
+                // Create the update definition for the order items
+
+                // Execute the update operation on the database
+
+                var updateItems = Builders<Order>.Update.Set(o => o.OrderItems, order.OrderItems.Select(item => new OrderItem
+                {
+                    ProductId = item.ProductId,
+                    ProductCode = item.ProductCode,
+                    ProductName = item.ProductName,
+                    ProductPrice = item.ProductPrice,
+                    Quantity = item.Quantity,
+                    VendorId = item.VendorId,
+                    VendorName = item.VendorName,
+                    FulfillmentStatus = Enum.Parse<FulfillmentStatusEnum>(item.FulfillmentStatus),
+                    ImageUrl = item.ImageUrl
+                }).ToList());
+
+                await _orderCollection.UpdateOneAsync(o => o.Id == orderId, updateItems);
+
+                // Send notification to the user
+                await _notificationService.SendNotificationAsync(order.UserId, $"Your order {order.OrderId} has been fully delivered.");
                 return true;
             }
-            return false;
+            return false; // Indicate failure if the order status update failed
         }
+
+
+
+
+
 
         // Mark product as ready by vendor
         public async Task<bool> MarkProductAsReadyByVendorAsync(string orderId, string productId, string vendorId)
@@ -178,7 +273,12 @@ namespace ecommerceWebServicess.Services
                 {
                     if (statusUpdate == OrderStatus.Fulfilled)
                     {
-                        await _notificationService.SendNotificationAsync(order.UserId, $"Your order {order.OrderId} has been fully delivered.", orderId);
+                        await _notificationService.SendNotificationAsync(order.UserId, $"Your order {order.OrderId} has been fully delivered.");
+                    }
+                    else
+                    {
+                        await _notificationService.SendNotificationAsync(order.UserId, $"Your {product.ProductName} product in  order {order.OrderId} has been delivered.");
+
                     }
                     return true;
                 }
@@ -262,7 +362,7 @@ namespace ecommerceWebServicess.Services
                 if (result.ModifiedCount > 0)
                 {
                     // Optional: Send a notification if needed
-                    await _notificationService.SendNotificationAsync(order.UserId, $"The {product.ProductName} product in your order {order.OrderId} has been marked as shipped.", orderId);
+                    await _notificationService.SendNotificationAsync(order.UserId, $"The {product.ProductName} product in your order {order.OrderId} has been marked as shipped.");
                     return true; // Indicate that the operation was successful
                 }
             }

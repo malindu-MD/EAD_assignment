@@ -7,7 +7,7 @@ import CustomModal from "../components/CustomModal";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { base_url } from "../utils/base_url";
-import { config } from "../utils/axiosConfig";
+import { axiosInstance, config } from "../utils/axiosConfig";
 
 
 
@@ -16,39 +16,50 @@ const VendorList = () => {
   const columns = [
     {
       title: "Number",
+      align: "center",
       dataIndex: "key",
     },
     {
       title: "Vendor Name",
       dataIndex: "vname",
+      align: "center",
       sorter: (a, b) => a.vname.length - b.vname.length,
     },
     {
       title: "Email",
       dataIndex: "email",
+      align: "center",
       sorter: (a, b) => a.email.length - b.email.length,
     },
     {
       title: "Business Name",
       dataIndex: "business",
+      align: "center",
       sorter: (a, b) => a.business.length - b.business.length,
-    },
+    },  
+
     {
       title: "Average Rating[5]",
       dataIndex: "arating",
+      align: "center",
     },
 
     {
-      title: "Comments",
-      dataIndex: "comment"
+      title: "Customer Feedback" ,
+      dataIndex: "comment",
+      align: "center",
     },
     {
         title: "Registered Date",
         dataIndex: "date",
+        align: "center",
+        sorter: (a, b) => new Date(a.date) - new Date(b.date), // Sorting function
+      render: (date) => new Date(date).toLocaleDateString(), // Format date for display
     },
     {
       title: "Action",
       dataIndex: "action",
+      align: "center",
     },
   ];
 
@@ -74,7 +85,7 @@ const VendorList = () => {
   // Fetch all products
   const fetchVendor = async () => {
     try {
-      const res = await axios.get(`${base_url}Vendor`,config()); // Replace with actual product API
+      const res = await axiosInstance.get(`${base_url}Vendor`,config()); // Replace with actual product API
       setVendors(res.data);
     } catch (error) {
       toast.error("Error fetching products");
@@ -100,7 +111,7 @@ const VendorList = () => {
       business: vendors[i].businessName,
       arating: (<>
       {vendors[i].averageRating} 
-      <TiStar/>
+    
       </>),
       comment: (
         <button className="btn btn-primary" >

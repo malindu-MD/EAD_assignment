@@ -105,13 +105,14 @@ const VendorOrderItem = () => {
       render: (_, record) => {
         const isDelivered = record.ostatus === "Delivered";
         const isShipped = record.ostatus === "Shipped";
+        const isCanclled=record.ostatus === "Cancelled";
 
         return (
           <Select
             defaultValue="Select"
             style={{ width: 120 }}
             onChange={(value) => handleStatusChange(record, value)}
-            disabled={isDelivered } // Disable if already delivered or shipped
+            disabled={isDelivered || isCanclled } // Disable if already delivered or shipped
           >
             {!isShipped && <Option value="Shipped">Shipped</Option>}
             {!isDelivered && <Option value="Delivered">Delivered</Option>}

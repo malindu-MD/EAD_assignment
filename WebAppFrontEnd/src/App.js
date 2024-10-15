@@ -2,9 +2,7 @@ import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
-import MainLayout from "./components/MainLayout";
-import Enquiries from "./pages/Enquiries";
-import Orders from "./pages/Orders";
+
 import Customers from "./pages/Customers";
 import CategoryList from "./pages/CategoryList";
 import ProductList from "./pages/ProductList";
@@ -41,7 +39,7 @@ function App() {
         <Route
           path="/administrator"
           element={
-          <PrivateRoutes allowedRoles={["administrator"]}>
+          <PrivateRoutes allowedRoles={["Administrator"]}>
              <AdminLayout/>
             </PrivateRoutes>
           }
@@ -52,7 +50,7 @@ function App() {
           <Route path='vendor-list' element={<VendorList/>}/>
           <Route path='main-orders' element={<MainOrderList/>}/>
           <Route path="category-list" element={<CategoryList />} />
-          <Route path='main-orders/:orderId' element={<MainOrderItem/>}/>
+          <Route path='main-orders/:orderId/:ordercode' element={<MainOrderItem/>}/>
 
 
 
@@ -104,7 +102,7 @@ function App() {
         
           
           <Route path='main-orders' element={<MainOrderList/>}/>
-          <Route path='main-orders/:orderId' element={<MainOrderItem/>}/>
+          <Route path='main-orders/:orderId/:ordercode' element={<MainOrderItem/>}/>
           <Route path="customers" element={<Customers />} />
        
 

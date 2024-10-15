@@ -138,6 +138,7 @@ namespace ecommerceWebServicess.Models
         PartiallyFulfilled,
         Fulfilled,
         Cancelled
+       
     }
 
     // Enumeration for fulfillment status of order items

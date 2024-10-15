@@ -6,6 +6,8 @@ import { useFormik } from "formik";
 import CustomInput from "../components/CustomInput";
 import { HiOutlineArrowLongLeft } from "react-icons/hi2";
 import axios from "axios";
+import { base_url } from "../utils/base_url";
+import { axiosInstance, config } from "../utils/axiosConfig";
 
 // Validation schema
 let schema = Yup.object().shape({
@@ -19,7 +21,6 @@ const AddVendor = () => {
   const navigate = useNavigate();
   const getBrandId = location.pathname.split("/")[3];
 
-  const hardcodedToken = 'YOUR_TOKEN_HERE'; // Replace with your actual token
 
   useEffect(() => {
     if (getBrandId !== undefined) {
@@ -31,11 +32,7 @@ const AddVendor = () => {
   // Fetch brand details for updating
   const fetchBrandDetails = async (brandId) => {
     try {
-      const res = await axios.get(`http://localhost:5272/api/brand/${brandId}`, {
-        headers: {
-          Authorization: `Bearer ${hardcodedToken}`,
-        },
-      });
+      const res = await axiosInstance.get(`${base_url}brand/${brandId}`,config());
       setBrandName(res.data.title);
     } catch (error) {
       toast.error("Failed to fetch brand details");
@@ -53,13 +50,9 @@ const AddVendor = () => {
         // Update brand
         try {
           await axios.put(
-            `http://localhost:5272/api/brand/${getBrandId}`,
+            `${base_url}brand/${getBrandId}`,
             values,
-            {
-              headers: {
-                Authorization: `Bearer ${hardcodedToken}`,
-              },
-            }
+           config()
           );
           toast.success("Brand Updated Successfully!");
           navigate("/admin/brand-list");
@@ -69,11 +62,7 @@ const AddVendor = () => {
       } else {
         // Create new brand
         try {
-          await axios.post("http://localhost:5272/api/brand", values, {
-            headers: {
-              Authorization: `Bearer ${hardcodedToken}`,
-            },
-          });
+          await axios.post(`${base_url}brand`, values, config());
           toast.success("Brand Added Successfully!");
           formik.resetForm();
         } catch (error) {

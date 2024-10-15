@@ -16,12 +16,14 @@ namespace ecommerceWebServicess.Services
     {
         private readonly IMongoCollection<User> _users;
         private readonly PasswordHasher _passwordHasher;
+        private readonly INotificationService _notificationService;
 
-        public UserService(IMongoClient mongoClient, PasswordHasher passwordHasher)
+        public UserService(IMongoClient mongoClient, PasswordHasher passwordHasher,INotificationService notificationService)
         {
             var database = mongoClient.GetDatabase("ECommerceDB");
             _users = database.GetCollection<User>("Users");
             _passwordHasher = passwordHasher;
+            _notificationService = notificationService;
         }
 
         // Deactivate a user
@@ -110,6 +112,21 @@ namespace ecommerceWebServicess.Services
 
             await _users.InsertOneAsync(newUser);
 
+            // If the registered user is a customer, notify all CSR users
+            if (role == "Customer")
+            {
+                // Retrieve all users and filter those with the role of "CSR"
+                var users = await GetAllUsersAsync();
+                var csrUsers = users.Where(u => u.Role == "CSR").ToList();
+
+                // Send notifications to each CSR user
+                foreach (var csrUser in csrUsers)
+                {
+                    // Assuming you have a method to send notifications
+                    await _notificationService.SendNotificationAsync(csrUser.Id, $"A new customer has registered: {registerDto.Username} ({registerDto.Email})");
+                }
+            }
+
             return new UserDTO
             {
                 Id = newUser.Id.ToString(),
@@ -119,6 +136,7 @@ namespace ecommerceWebServicess.Services
                 Role = newUser.Role
             };
         }
+
 
         // Helper method to validate roles
         private static bool IsValidRole(string role)

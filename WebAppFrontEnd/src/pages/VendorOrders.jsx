@@ -40,6 +40,8 @@ const VendorOrders = () => {
       title: "Ordered Date",
       dataIndex: "date",
       align: "center",
+      sorter: (a, b) => new Date(a.date) - new Date(b.date), // Sorting function
+      render: (date) => new Date(date).toLocaleDateString(), // Format date for display
     },
     {
       title: "Order Status",

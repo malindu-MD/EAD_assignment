@@ -46,7 +46,7 @@ const Login = () => {
             navigate("/csr");
           }
 
-
+          formik.resetForm();
         } else {
           setErrorMessage(data.message || "Login failed. Please try again.");
         }

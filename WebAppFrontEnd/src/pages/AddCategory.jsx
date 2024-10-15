@@ -67,7 +67,7 @@ const AddCategory = () => {
           .then(() => {
             toast.success("Category Added Successfully");
             formik.resetForm();
-            navigate("/admin/category-list");
+            navigate("/administrator/category-list");
           })
           .catch((error) => {
             console.log(values.title)

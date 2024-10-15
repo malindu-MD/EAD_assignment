@@ -56,9 +56,21 @@ namespace ecommerceWebServicess.Services
         }
 
         // Method not yet implemented
-        public Task SendNotificationAsync(string userId, string message)
+        public async Task SendNotificationAsync(string userId, string message)
         {
-            throw new NotImplementedException();
+           
+
+            // Create and insert new notification
+            var notification = new Notification
+            {
+                UserId = userId,
+                ProductId = " ",
+                Message = message,
+                IsRead = false,
+                DateCreated = DateTime.UtcNow
+            };
+
+            await _notificationCollection.InsertOneAsync(notification);
         }
 
 

@@ -181,5 +181,58 @@ namespace ecommerceWebServicess.Services
             var result = await _vendorCollection.UpdateOneAsync(v => v.UserId == vendorId, update);
             return result.ModifiedCount > 0;
         }
+
+
+
+        // Method to get a single comment by vendorId and userId
+        public async Task<VendorComment> GetCommentByVendorAndUserIdAsync(string vendorId, string userId)
+        {
+            // Fetch the vendor
+            var vendor = await _vendorCollection.Find(v => v.UserId == vendorId).FirstOrDefaultAsync();
+
+            // If vendor doesn't exist, return null
+            if (vendor == null) return null;
+
+            // Find the comment by userId
+            var comment = vendor.Comments.FirstOrDefault(c => c.UserId == userId);
+
+            return comment; // Will return null if not found
+        }
+
+
+        // Get all comments by user ID, along with the associated vendor details
+        public async Task<IEnumerable<CommentWithVendorDetailsDto>> GetAllCommentsByUserIdAsync(string userId)
+        {
+            // Find all vendors
+            var vendors = await _vendorCollection.Find(Builders<Vendor>.Filter.Empty).ToListAsync();
+
+            // Initialize a list to hold comments and their vendor details
+            var allCommentsWithVendorDetails = new List<CommentWithVendorDetailsDto>();
+
+            // Loop through each vendor to get their comments
+            foreach (var vendor in vendors)
+            {
+                // Filter comments for the specific user ID
+                var userComments = vendor.Comments.Where(c => c.UserId == userId);
+
+                // Add each comment along with the vendor details to the list
+                foreach (var comment in userComments)
+                {
+                    allCommentsWithVendorDetails.Add(new CommentWithVendorDetailsDto
+                    {
+                        VendorId = vendor.UserId, // Assuming vendor.UserId is the vendor ID
+                        BusinessName = vendor.BusinessName, // Add vendor's business name
+                        Comment = comment
+                    });
+                }
+            }
+
+            return allCommentsWithVendorDetails; // Return the list of comments with vendor details
+        }
+
+
     }
 }
+
+
+
