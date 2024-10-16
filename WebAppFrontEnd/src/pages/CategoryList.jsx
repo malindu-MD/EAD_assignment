@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Switch } from "antd";
+import { Table, Switch, Spin } from "antd"; // Import Spin
 import { Link } from "react-router-dom";
 import { BiEdit } from "react-icons/bi";
 import { TiDeleteOutline } from "react-icons/ti";
@@ -8,11 +8,11 @@ import { axiosInstance, config } from "../utils/axiosConfig";
 import { base_url } from "../utils/base_url";
 import { toast } from "react-toastify";
 
-
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
   const [open, setOpen] = useState(false);
   const [productCategoryId, setProductCategoryId] = useState("");
+  const [loading, setLoading] = useState(true); // Loading state
 
   const showModal = (id) => {
     setOpen(true);
@@ -25,17 +25,18 @@ const CategoryList = () => {
 
   // Fetch all categories
   useEffect(() => {
-   
-
     fetchCategories();
   }, []);
 
   const fetchCategories = async () => {
+    setLoading(true); // Start loading
     try {
       const response = await axiosInstance.get(`${base_url}category`, config());
       setCategories(response.data);
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      toast.error("Error fetching categories");
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
@@ -59,7 +60,7 @@ const CategoryList = () => {
     const endpoint = record.isActive
       ? `${base_url}Category/Deactivate/${record.catid}`
       : `${base_url}Category/Activate/${record.catid}`;
-      
+
     try {
       await axiosInstance.patch(endpoint, config());
       // Update the state to reflect the new active status
@@ -81,7 +82,7 @@ const CategoryList = () => {
   const data = categories.map((category, index) => ({
     key: index + 1,
     title: category.name,
-    catid:category.id,
+    catid: category.id,
     isActive: category.isActive,
     action: (
       <>
@@ -102,40 +103,46 @@ const CategoryList = () => {
   return (
     <div>
       <h3 className="mb-4 title">Product Categories</h3>
-      <div>
-        <Table 
-          columns={[
-            {
-              title: "Number",
-              dataIndex: "key",
-              align: "center",
-            },
-            {
-              title: "Category Name",
-              dataIndex: "title",
-              align: "center",
-              sorter: (a, b) => a.title.length - b.title.length,
-            },
-            {
-              title: "Active",
-              dataIndex: "isActive",
-              align: "center",
-              render: (isActive, record) => (
-                <Switch    
-                  checked={isActive}
-                  onChange={() => handleToggleActive(record)}
-                />
-              ),
-            },
-            {
-              title: "Action",
-              dataIndex: "action",
-              align: "center",
-            },
-          ]}
-          dataSource={data} 
-        />
-      </div>
+      {loading ? ( // Show loading spinner while fetching data
+        <div style={{ textAlign: 'center', marginTop: '50px' }}>
+          <Spin size="large" />
+        </div>
+      ) : (
+        <div>
+          <Table 
+            columns={[
+              {
+                title: "Number",
+                dataIndex: "key",
+                align: "center",
+              },
+              {
+                title: "Category Name",
+                dataIndex: "title",
+                align: "center",
+                sorter: (a, b) => a.title.length - b.title.length,
+              },
+              {
+                title: "Active",
+                dataIndex: "isActive",
+                align: "center",
+                render: (isActive, record) => (
+                  <Switch    
+                    checked={isActive}
+                    onChange={() => handleToggleActive(record)}
+                  />
+                ),
+              },
+              {
+                title: "Action",
+                dataIndex: "action",
+                align: "center",
+              },
+            ]}
+            dataSource={data} 
+          />
+        </div>
+      )}
       <CustomModal
         hideModal={hideModal}
         open={open}

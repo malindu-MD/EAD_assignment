@@ -7,6 +7,7 @@ using ecommerceWebServicess.DTOs;
 using ecommerceWebServicess.Helpers;
 using ecommerceWebServicess.Interfaces;
 using ecommerceWebServicess.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -75,6 +76,7 @@ namespace ecommerceWebServicess.Services
                         Comments = vendor.Comments,
                         Username = user.Username,
                         Email = user.Email,
+                        CreatedAt=user.CreatedAt,
                         PhoneNumber = user.PhoneNumber,
                         IsActive = user.IsActive
                     });
@@ -113,9 +115,26 @@ namespace ecommerceWebServicess.Services
         // Update vendor details
         public async Task<bool> UpdateVendorAsync(string vendorId, UpdateVendorDto vendorDto)
         {
+            var vendor = await _vendorCollection.Find(v => v.UserId == vendorId).FirstOrDefaultAsync();
+
+            if (vendor == null) return false; // Vendor not found
+
+            var hashedPassword = _passwordHasher.HashPassword(vendorDto.PasswordHash);
+
+
             var update = Builders<Vendor>.Update.Set(v => v.BusinessName, vendorDto.BusinessName);
-            var result = await _vendorCollection.UpdateOneAsync(v => v.UserId == vendorId, update);
-            return result.ModifiedCount > 0;
+            var userUpdate = Builders<User>.Update
+               .Set(u => u.Username, vendorDto.Username)
+               .Set(u => u.Email, vendorDto.Email)
+               .Set(u => u.PhoneNumber, vendorDto.PhoneNumber)
+               .Set(u=> u.PasswordHash,hashedPassword);
+
+
+            var vendorResult = await _vendorCollection.UpdateOneAsync(v => v.UserId == vendorId, update);
+            var userResult = await _userCollection.UpdateOneAsync(u => u.Id == ObjectId.Parse(vendorId), userUpdate);
+
+            return vendorResult.ModifiedCount > 0 || userResult.ModifiedCount > 0; // Return true if either was modified
+
         }
 
         // Add comment and rating
@@ -229,6 +248,26 @@ namespace ecommerceWebServicess.Services
 
             return allCommentsWithVendorDetails; // Return the list of comments with vendor details
         }
+
+
+
+        public async Task<bool> DeleteVendorAsync(string vendorId)
+        {
+            // Find the vendor by ID
+            var vendor = await _vendorCollection.Find(v => v.UserId == vendorId).FirstOrDefaultAsync();
+            if (vendor == null) return false; // Vendor not found
+
+            // Remove the vendor document from the Vendors collection
+            var deleteVendorResult = await _vendorCollection.DeleteOneAsync(v => v.UserId == vendorId);
+
+            // Also remove the associated user document from the Users collection
+            var deleteUserResult = await _userCollection.DeleteOneAsync(u => u.Id == ObjectId.Parse(vendor.UserId));
+
+            return deleteVendorResult.DeletedCount > 0 && deleteUserResult.DeletedCount > 0;
+        }
+
+
+
 
 
     }

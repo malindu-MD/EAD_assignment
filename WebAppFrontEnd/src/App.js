@@ -47,6 +47,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="category" element={<AddCategory />} />
           <Route path='vendor' element={<AddVendor/>}/>
+          <Route path='vendor/:vendorid' element={<AddVendor/>}/>
           <Route path='vendor-list' element={<VendorList/>}/>
           <Route path='main-orders' element={<MainOrderList/>}/>
           <Route path="category-list" element={<CategoryList />} />

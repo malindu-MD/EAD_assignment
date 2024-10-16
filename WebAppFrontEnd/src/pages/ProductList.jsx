@@ -36,7 +36,6 @@ const ProductList = () => {
       const res = await axiosInstance.get(`${base_url}Product/Vendor`, config());
       setProducts(res.data);
     } catch (error) {
-      toast.error("Error fetching products");
     } finally {
       setLoading(false); // End loading
     }

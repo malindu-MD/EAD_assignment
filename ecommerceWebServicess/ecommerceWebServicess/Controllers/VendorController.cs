@@ -139,6 +139,21 @@ namespace ecommerceWebServicess.Controllers
         }
 
 
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Administrator")]
+        public async Task<IActionResult> DeleteVendor(string id)
+        {
+            var result = await _vendorService.DeleteVendorAsync(id);
+            if (!result)
+            {
+                return NotFound("Vendor not found.");
+            }
+
+            return NoContent(); // Successfully deleted
+        }
+
+
+
 
     }
 }

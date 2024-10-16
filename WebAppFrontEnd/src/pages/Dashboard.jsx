@@ -41,8 +41,12 @@ const Dashboard = () => {
   const [dataMonthly, setDataMonthly] = useState([]);
   const [dataMonthlySales, setDataMonthlySales] = useState([]);
   const [orderData, setOrderData] = useState([]);
+  const [userdata,setUserdata]=useState();
+
 
   useEffect(() => {
+
+
     
   }, []);
 
@@ -163,7 +167,7 @@ const Dashboard = () => {
   };
   return (
     <div>
-      <h3 className="mb-4">CSR Dashboard</h3>
+      <h3 className="mb-4">Dashboard</h3>
       <div className="d-flex justify-content-between align-items-center gap-3">
         <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
           <div>

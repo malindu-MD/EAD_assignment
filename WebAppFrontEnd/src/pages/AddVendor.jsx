@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate,useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -11,62 +11,97 @@ import { axiosInstance, config } from "../utils/axiosConfig";
 
 // Validation schema
 let schema = Yup.object().shape({
-  title: Yup.string().required("Brand Name is Required"),
+  name: Yup.string().required("Name is Required"),
+  email: Yup.string().email("Invalid email").required("Email is Required"),
+  phone: Yup.string().required("Phone Number is Required"),
+  password:Yup.string().required("Password is Required"),
+  business: Yup.string().required("business name is Required")
+ 
+  
 });
 
 const AddVendor = () => {
   const [brandName, setBrandName] = useState("");
+  const { vendorid } = useParams();
+
+  const [vendorDetails, setVendorDetails] = useState(null);
+  
   const [isUpdating, setIsUpdating] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const getBrandId = location.pathname.split("/")[3];
 
 
   useEffect(() => {
-    if (getBrandId !== undefined) {
-      fetchBrandDetails(getBrandId);
+    if (vendorid !== undefined) {
+      fetchVendorDetails(vendorid);
       setIsUpdating(true);
     }
-  }, [getBrandId]);
+  }, [vendorid]);
 
   // Fetch brand details for updating
-  const fetchBrandDetails = async (brandId) => {
+  const fetchVendorDetails = async (vendorid) => {
     try {
-      const res = await axiosInstance.get(`${base_url}brand/${brandId}`,config());
-      setBrandName(res.data.title);
+      const res = await axiosInstance.get(`${base_url}Vendor/${vendorid}`,config());
+      setVendorDetails(res.data);
     } catch (error) {
-      toast.error("Failed to fetch brand details");
+      toast.error("Failed to fetch vendor details");
     }
   };
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
-      title: brandName || "",
+      name: vendorDetails?.username || "",
+      email: vendorDetails?.email || "",
+      phone: vendorDetails?.phoneNumber || "",
+      business:  vendorDetails?.businessName || "",
+      password: "",
+     
     },
     validationSchema: schema,
     onSubmit: async (values) => {
-      if (isUpdating) {
+      if (vendorid) {
+        console.log(values);
         // Update brand
         try {
-          await axios.put(
-            `${base_url}brand/${getBrandId}`,
-            values,
+          await axiosInstance.put(
+            `${base_url}Vendor/${vendorid}`,
+            {
+
+              businessName:values.business,
+              username:values.name,
+              email:values.email,
+              phoneNumber:values.phone,
+              passwordHash:values.password
+
+            },
            config()
           );
-          toast.success("Brand Updated Successfully!");
-          navigate("/admin/brand-list");
+          toast.success("Vendor Updated Successfully!");
+          navigate("/administrator/vendor-list");
         } catch (error) {
-          toast.error("Error updating brand");
+          console.log(error);
+          toast.error("Error updating Vendor");
         }
       } else {
         // Create new brand
         try {
-          await axios.post(`${base_url}brand`, values, config());
-          toast.success("Brand Added Successfully!");
+          await axiosInstance.post(`${base_url}Vendor/Create`, {
+            
+            username:values.name,
+            email:values.email,
+            phoneNumber:values.phone,
+            passwordHash:values.password,
+            businessName:values.business,
+
+
+
+          }, config());
+          toast.success("Vendor Added Successfully!");
           formik.resetForm();
+          navigate("/administrator/vendor-list");
         } catch (error) {
-          toast.error("Error adding brand");
+          toast.error("Error adding Vendor");
         }
       }
     },
@@ -80,10 +115,10 @@ const AddVendor = () => {
     <div>
       <div className="d-flex justify-content-between align-items-center">
         <h3 className="mb-4 title">
-          {getBrandId !== undefined ? "Edit" : "Edit"}  Vendor
+          {vendorid !== undefined ? "Edit" : "Add"}  Vendor
         </h3>
         <div>
-          {getBrandId !== undefined && (
+          {vendorid !== undefined && (
             <button
               className="bg-transparent border-0 mb-0 fs-6 d-flex gap-3 align-items-center"
               onClick={goBack}
@@ -108,6 +143,20 @@ const AddVendor = () => {
           <div className="error">
             {formik.touched.name && formik.errors.name}
           </div>
+
+          <CustomInput
+            type="email"
+            label="Enter Vendor Email"
+            name="email"
+            onChng={formik.handleChange("email")}
+            onBLr={formik.handleBlur("email")}
+            val={formik.values.email}
+            id="email"
+          />
+          <div className="error">
+            {formik.touched.email && formik.errors.email}
+          </div>
+
 
           <CustomInput
             type="text"
@@ -135,7 +184,10 @@ const AddVendor = () => {
             {formik.touched.phone && formik.errors.phone}
           </div>
 
-          <CustomInput
+
+    
+            
+            <CustomInput
             type="Password"
             label="Enter Vendor Account Password"
             name="password"
@@ -145,14 +197,17 @@ const AddVendor = () => {
             id="password"
           />
           <div className="error">
-            {formik.touched.title && formik.errors.title}
+            {formik.touched.password && formik.errors.password}
           </div>
+            
+     
+       
 
           <button
             className="btn btn-success border-0 rounded-3 my-5"
             type="submit"
           >
-            {getBrandId !== undefined ? "Update " : "Update "}
+            {vendorid !== undefined ? "Update " : "Add "}
             vendor
           </button>
         </form>

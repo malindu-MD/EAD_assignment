@@ -60,6 +60,9 @@ namespace ecommerceWebServicess.Interfaces
 
          Task<IEnumerable<CommentWithVendorDetailsDto>> GetAllCommentsByUserIdAsync(string userId);
 
+
+         Task<bool> DeleteVendorAsync(string vendorId);
+
     }
 
 
