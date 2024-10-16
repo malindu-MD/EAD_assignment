@@ -419,7 +419,9 @@ namespace ecommerceWebServicess.Services
                     VendorName = item.VendorName,
                     FulfillmentStatus = item.FulfillmentStatus.ToString(),
                     ImageUrl = item.ImageUrl
-                }).ToList()
+                }).ToList(),
+                Messages=order.Messages
+                
             };
         }
 
@@ -440,5 +442,60 @@ namespace ecommerceWebServicess.Services
             return new string(Enumerable.Repeat(chars, length)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+
+
+
+
+
+        public async Task<bool> CancelOrderAsyn(OrderCancelRequestDto orderCancelRequest)
+        {
+            // Fetch the order first
+            var order = await GetOrderByIdAsyn(orderCancelRequest.OrderId);
+
+            if (order == null) return false; // Ensure the order exists
+
+            // Add the cancellation note to the order's cancellation requests
+            if (order.Messages == null)
+            {
+                order.Messages = new List<string>(); // Initialize if null
+            }
+            order.Messages.Add(orderCancelRequest.Note); // Add the cancellation note
+
+            // Update the fulfillment status of all order items to Cancelled
+
+            // Create the update definition for the order
+            var update = Builders<Order>.Update
+                .Set(o => o.Messages, order.Messages);// Update cancellation requests
+              
+
+            // Execute the update operation on the database
+            var result = await _orderCollection.UpdateOneAsync(o => o.Id == orderCancelRequest.OrderId, update);
+
+            if (result.ModifiedCount > 0)
+
+            {
+                // Send notification to the user about the cancellation
+                return true; // Indicate success
+            }
+
+            return false; // Indicate failure if the order status update failed
+        }
+
+
+        // Method to get an order by ID
+        public async Task<Order> GetOrderByIdAsyn(string orderId)
+        {
+            // Fetch the order from the database using the provided order ID
+            var order = await _orderCollection.Find(o => o.Id == orderId).FirstOrDefaultAsync();
+
+            // Return the order, or null if not found
+            return order;
+        }
+
+
+
+
+
+
     }
 }

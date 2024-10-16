@@ -8,6 +8,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
 using System.ComponentModel.DataAnnotations;
+using ecommerceWebServicess.DTOs;
 
 namespace ecommerceWebServicess.Models
 {
@@ -55,6 +56,10 @@ namespace ecommerceWebServicess.Models
         [Required]
         [BsonElement("orderItems")]
         public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+
+        [BsonElement("messages")]
+        public List<string> Messages { get; set; } = new List<string>();
+
     }
 
     public class Address
@@ -149,4 +154,7 @@ namespace ecommerceWebServicess.Models
         Shipped,
         Cancelled
     }
+
+
+   
 }

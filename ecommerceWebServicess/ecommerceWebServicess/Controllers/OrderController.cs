@@ -8,6 +8,7 @@
 using System.Security.Claims;
 using ecommerceWebServicess.DTOs;
 using ecommerceWebServicess.Interfaces;
+using ecommerceWebServicess.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -187,6 +188,17 @@ namespace ecommerceWebServicess.Controllers
 
           
         }
+
+
+        [HttpPost("cancel-request")]
+      
+        public async Task<IActionResult> CreateCancelRequest( OrderCancelRequestDto cancelRequest)
+        {
+            var result = await _orderService.CancelOrderAsyn(cancelRequest);
+            if (!result) return BadRequest("Failed to create cancellation request or update order."); // Handle failure case
+            return NoContent(); // Return success status
+        }
+
 
 
 

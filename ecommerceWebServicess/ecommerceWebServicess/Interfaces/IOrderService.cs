@@ -96,5 +96,9 @@ namespace ecommerceWebServicess.Interfaces
 
 
         Task<bool> MarkProductAsShippedByVendorAsync(string orderId, string productId, string vendorId);
+
+
+        Task<bool> CancelOrderAsyn(OrderCancelRequestDto orderCancelRequest);
+
     }
 }

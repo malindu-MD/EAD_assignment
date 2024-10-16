@@ -13,7 +13,9 @@
             public double TotalAmount { get; set; }
             public AddressDto ShippingAddress { get; set; }
             public List<OrderItemDto> OrderItems { get; set; }
-        }
+
+            public List<string> Messages { get; set; } = new List<string>();
+    }
 
         public class CreateOrderDto
         {

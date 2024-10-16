@@ -5,6 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { base_url } from "../utils/base_url";
 import { axiosInstance, config } from "../utils/axiosConfig";
+import { FaRegComment } from "react-icons/fa"; // Import message icon
 
 const { Option } = Select;
 
@@ -37,6 +38,26 @@ const MainOrderList = () => {
       title: "Phone Number",
       dataIndex: "pnumber",
       align: "center",
+    },
+    {
+      title: "Message",
+      dataIndex: "messageCount",
+      align: "center",
+      render: (count, record) => (
+        <span>
+          <FaRegComment
+            size={18}
+            style={{ marginRight: 0, cursor: 'pointer' }}
+            onClick={() => handleMessageClick(record.message || [])}// Ensure messages is an array
+          />
+           
+           {count===0? (<></>):(<><span className="badge bg-danger rounded-circle p-1 position-absolute">
+            {count}
+          </span></>)}
+
+          
+        </span>
+      ),
     },
     {
       title: "Ordered Date",
@@ -74,8 +95,9 @@ const MainOrderList = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(true); // Loading state
   const [cancellationNote, SetcancellationNote] = useState("");
-  const [userdata,setUserdata]=useState(null);
-
+  const [userdata, setUserdata] = useState(null);
+  const [messageModalVisible, setMessageModalVisible] = useState(false); // State for message modal
+  const [selectedMessages, setSelectedMessages] = useState([]); // State for selected order messages
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
@@ -146,6 +168,12 @@ const MainOrderList = () => {
     }
   };
 
+  const handleMessageClick = (message) => {
+    console.log(message);
+    setSelectedMessages(message); // Set the messages for the selected order
+    setMessageModalVisible(true); // Show the message modal
+  };
+
   const getStatusStyle = (status) => {
     let bgColor, textColor;
     switch (status) {
@@ -195,37 +223,38 @@ const MainOrderList = () => {
       cname: customer.username || "Unknown",
       address: `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.zip}`,
       pnumber: customer.phoneNumber || "Unknown",
+      messageCount: order.messages ? order.messages.length : 0, // Safely access messages
+      message:order.messages,
       date: new Date(order.createdAt).toLocaleDateString(),
       ostatus: order.status,
       oitem: (
-        userdata.role==="CSR" ? (
+        userdata.role === "CSR" ? (
           <Link
-          to={`/csr/main-orders/${order.id}/${order.orderId}`}
-          style={{
-            backgroundColor: "#000429",
-            padding: "5px 10px",
-            borderRadius: "4px",
-            color: "#ffffff",
-            textDecoration: "none",
-          }}
-        >
-          View
-        </Link>
-        ):(
+            to={`/csr/main-orders/${order.id}/${order.orderId}`}
+            style={{
+              backgroundColor: "#000429",
+              padding: "5px 10px",
+              borderRadius: "4px",
+              color: "#ffffff",
+              textDecoration: "none",
+            }}
+          >
+            View
+          </Link>
+        ) : (
           <Link
-          to={`/administrator/main-orders/${order.id}/${order.orderId}`}
-          style={{
-            backgroundColor: "#000429",
-            padding: "5px 10px",
-            borderRadius: "4px",
-            color: "#ffffff",
-            textDecoration: "none",
-          }}
-        >
-          View
-        </Link>
+            to={`/administrator/main-orders/${order.id}/${order.orderId}`}
+            style={{
+              backgroundColor: "#000429",
+              padding: "5px 10px",
+              borderRadius: "4px",
+              color: "#ffffff",
+              textDecoration: "none",
+            }}
+          >
+            View
+          </Link>
         )
-      
       ),
       changeStatus: (
         <Select
@@ -293,6 +322,36 @@ const MainOrderList = () => {
           rows={4}
           placeholder="Enter cancellation note"
         />
+      </Modal>
+
+      {/* Message Modal */}
+      <Modal
+        title="Order Messages"   
+        visible={messageModalVisible}
+        onCancel={() => setMessageModalVisible(false)}
+        footer={[
+          <Button key="back" onClick={() => setMessageModalVisible(false)}>
+            Close
+          </Button>,
+        ]}
+      >
+         {selectedMessages.length === 0 ? (
+    <p>No messages available for this order.</p>
+  ) : (
+    <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+      {selectedMessages.map((message, index) => (
+        <div key={index} style={{ 
+          padding: '10px', 
+          marginBottom: '10px', 
+          borderRadius: '5px', 
+          backgroundColor: '#f1f1f1', 
+          border: '1px solid #ccc' 
+        }}>
+          {message}
+        </div>
+      ))}
+    </div>
+  )}
       </Modal>
     </div>
   );
