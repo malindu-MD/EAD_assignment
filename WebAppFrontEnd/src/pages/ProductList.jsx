@@ -57,6 +57,7 @@ const ProductList = () => {
       key: index + 1,
       code: product.productId,
       name: product.name,
+      image:product.imageUrl,
       category: category ? category.name : "Unknown", // Use category name
       stock: product.stock,
       price: `${product.price}.00`,
@@ -129,6 +130,21 @@ const ProductList = () => {
             dataIndex: "name",
             align: "center",
             sorter: (a, b) => a.name.length - b.name.length,
+          },
+          {
+            title: "Product Image",
+            dataIndex: "image",
+            align: "center",
+            render: (text, record) => (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <img
+                  src={record.image}
+                  alt='not here'
+                  style={{ width: 50, height: 50, marginRight: 8 }}
+                />
+                {record.pname}
+              </div>
+            ),
           },
           {
             title: "Category",
