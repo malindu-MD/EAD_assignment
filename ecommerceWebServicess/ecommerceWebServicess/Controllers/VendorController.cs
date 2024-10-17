@@ -50,7 +50,7 @@ namespace ecommerceWebServicess.Controllers
 
         // PUT: Update vendor details (Admin-only)
         [HttpPut("{id}")]
-        [Authorize(Roles = "Administrator")]
+       
         public async Task<IActionResult> UpdateVendor(string id, [FromBody] UpdateVendorDto vendorDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);

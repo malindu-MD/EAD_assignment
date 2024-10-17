@@ -136,7 +136,7 @@ const VendorOrders = () => {
       key: index + 1,
       orderid: order.orderId,
       cname: customer.username || "Unknown",
-      address: `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.zip}`,
+      address: `${order.shippingAddress.street}`,
       pnumber: customer.phoneNumber || "Unknown",
       date: new Date(order.createdAt).toLocaleDateString(),
       ostatus: order.status,

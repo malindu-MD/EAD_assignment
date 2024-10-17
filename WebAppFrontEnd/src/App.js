@@ -21,6 +21,8 @@ import MainOrderItem from "./pages/MainOrderItem";
 import VendorLayout from "./components/VendorLayout";
 import CsrLayout from "./components/CsrLayout";
 import NotFound from "./pages/NotFound";
+import DashboardAdmin from "./pages/DashboardAdmin";
+import DashboardCsr from "./pages/DashboardCsr";
 
 function App() {
   return (
@@ -44,7 +46,7 @@ function App() {
             </PrivateRoutes>
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route index element={<DashboardAdmin/>} />
           <Route path="category" element={<AddCategory />} />
           <Route path='vendor' element={<AddVendor/>}/>
           <Route path='vendor/:vendorid' element={<AddVendor/>}/>
@@ -99,7 +101,7 @@ function App() {
             </PrivateRoutes>
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route index element={<DashboardCsr/>} />
         
           
           <Route path='main-orders' element={<MainOrderList/>}/>

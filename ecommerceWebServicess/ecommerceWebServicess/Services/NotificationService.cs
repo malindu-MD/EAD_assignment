@@ -36,7 +36,7 @@ namespace ecommerceWebServicess.Services
                 .Find(n => n.UserId == userId && n.ProductId == productId)
                 .FirstOrDefaultAsync();
 
-            if (existingNotification != null)
+            if (existingNotification != null && existingNotification.IsRead==false)
             {
                 Console.WriteLine($"Notification for product {productId} already exists for user {userId}. Skipping insert.");
                 return;

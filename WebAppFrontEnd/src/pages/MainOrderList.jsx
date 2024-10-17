@@ -221,7 +221,7 @@ const MainOrderList = () => {
       key: index + 1,
       orderid: order.orderId,
       cname: customer.username || "Unknown",
-      address: `${order.shippingAddress.street}, ${order.shippingAddress.city}, ${order.shippingAddress.zip}`,
+      address: `${order.shippingAddress.street}`,
       pnumber: customer.phoneNumber || "Unknown",
       messageCount: order.messages ? order.messages.length : 0, // Safely access messages
       message:order.messages,

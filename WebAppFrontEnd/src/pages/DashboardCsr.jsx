@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 
 import { useState } from "react";
+import Dashboard from "./Dashboard";
 
 const columns = [
   {
@@ -24,7 +25,7 @@ const columns = [
     dataIndex: "price",
   },
   {
-    title: "Total Price After Discount",
+    title: "Total Orde Items  ",
     dataIndex: "dprice",
   },
   {
@@ -33,7 +34,7 @@ const columns = [
   },
 ];
 
-const Dashboard = () => {
+const DashboardCsr = () => {
   const dispatch = useDispatch();
   const monthlyDataState = useSelector((state) => state?.auth?.monthlyData);
   const yearlyDataState = useSelector((state) => state?.auth?.yearlyData);
@@ -167,12 +168,12 @@ const Dashboard = () => {
   };
   return (
     <div>
-      <h3 className="mb-4">Vendor Dashboard</h3>
+      <h3 className="mb-4">CSR Dashboard</h3>
       <div className="d-flex justify-content-between align-items-center gap-3">
         <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
           <div>
-            <p className="desc">Today Orders</p>
-            <h4 className="mb-0 sub-title">2 </h4>
+            <p className="desc">Total Orders</p>
+            <h4 className="mb-0 sub-title">15 </h4>
           </div>
           <div className="d-flex flex-column align-items-end">
             <p className="mb-0 desc"></p>
@@ -180,8 +181,8 @@ const Dashboard = () => {
         </div>
         <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
           <div>
-            <p className="desc">Total Orders</p>
-            <h4 className="mb-0 sub-title">6</h4>
+            <p className="desc">Total Customers</p>
+            <h4 className="mb-0 sub-title">11</h4>
           </div>
           <div className="d-flex flex-column align-items-end">
             <p className="mb-0 desc"></p>
@@ -193,8 +194,8 @@ const Dashboard = () => {
       <div className="d-flex justify-content-between align-items-center gap-3 mt-5">
         <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
           <div>
-            <p className="desc">Total Products  </p>
-            <h4 className="mb-0 sub-title">6</h4>
+            <p className="desc">New Customers</p>
+            <h4 className="mb-0 sub-title">2</h4>
           </div>
           <div className="d-flex flex-column align-items-end">
             <p className="mb-0 desc"></p>
@@ -202,8 +203,8 @@ const Dashboard = () => {
         </div>
         <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
           <div>
-            <p className="desc">Order Cancellation</p>
-            <h4 className="mb-0 sub-title">1</h4>
+            <p className="desc">Order Cancellation </p>
+            <h4 className="mb-0 sub-title">0</h4>
           </div>
           <div className="d-flex flex-column align-items-end">
             <p className="mb-0 desc"></p>
@@ -235,4 +236,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardCsr;

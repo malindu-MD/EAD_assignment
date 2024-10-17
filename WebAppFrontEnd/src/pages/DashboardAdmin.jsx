@@ -8,7 +8,7 @@ import { useState } from "react";
 
 const columns = [
   {
-    title: "Order No.",
+    title: "Cus No.",
     dataIndex: "key",
   },
   {
@@ -16,24 +16,24 @@ const columns = [
     dataIndex: "name",
   },
   {
-    title: "Product Count",
+    title: "Email",
     dataIndex: "product",
   },
   {
-    title: "Total Price",
+    title: "Phone number",
     dataIndex: "price",
   },
   {
-    title: "Total Price After Discount",
+    title: "Address",
     dataIndex: "dprice",
   },
   {
-    title: "Status",
+    title: "Action",
     dataIndex: "status",
   },
 ];
 
-const Dashboard = () => {
+const DashboardAdmin = () => {
   const dispatch = useDispatch();
   const monthlyDataState = useSelector((state) => state?.auth?.monthlyData);
   const yearlyDataState = useSelector((state) => state?.auth?.yearlyData);
@@ -167,12 +167,12 @@ const Dashboard = () => {
   };
   return (
     <div>
-      <h3 className="mb-4">Vendor Dashboard</h3>
+      <h3 className="mb-4">Admin Dashboard</h3>
       <div className="d-flex justify-content-between align-items-center gap-3">
         <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
           <div>
-            <p className="desc">Today Orders</p>
-            <h4 className="mb-0 sub-title">2 </h4>
+            <p className="desc">Total Orders</p>
+            <h4 className="mb-0 sub-title">15 </h4>
           </div>
           <div className="d-flex flex-column align-items-end">
             <p className="mb-0 desc"></p>
@@ -180,8 +180,8 @@ const Dashboard = () => {
         </div>
         <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
           <div>
-            <p className="desc">Total Orders</p>
-            <h4 className="mb-0 sub-title">6</h4>
+            <p className="desc">Total Customers</p>
+            <h4 className="mb-0 sub-title">11</h4>
           </div>
           <div className="d-flex flex-column align-items-end">
             <p className="mb-0 desc"></p>
@@ -193,8 +193,8 @@ const Dashboard = () => {
       <div className="d-flex justify-content-between align-items-center gap-3 mt-5">
         <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
           <div>
-            <p className="desc">Total Products  </p>
-            <h4 className="mb-0 sub-title">6</h4>
+            <p className="desc">Total Categories</p>
+            <h4 className="mb-0 sub-title">2</h4>
           </div>
           <div className="d-flex flex-column align-items-end">
             <p className="mb-0 desc"></p>
@@ -202,8 +202,8 @@ const Dashboard = () => {
         </div>
         <div className="d-flex p-3 justify-content-between align-items-end flex-grow-1 bg-white p-3 rounded-3">
           <div>
-            <p className="desc">Order Cancellation</p>
-            <h4 className="mb-0 sub-title">1</h4>
+            <p className="desc">Order Cancellation </p>
+            <h4 className="mb-0 sub-title">0</h4>
           </div>
           <div className="d-flex flex-column align-items-end">
             <p className="mb-0 desc"></p>
@@ -226,7 +226,7 @@ const Dashboard = () => {
         </div>
       </div> */}
       <div className="mt-4">
-        <h3 className="mb-5 title">Recent Orders</h3>
+        <h3 className="mb-5 title">Recent Customers</h3>
         <div>
           <Table columns={columns} dataSource={orderData} />
         </div>
@@ -235,4 +235,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardAdmin;
