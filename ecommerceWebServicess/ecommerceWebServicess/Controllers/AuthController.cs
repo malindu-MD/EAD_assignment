@@ -28,24 +28,45 @@ namespace ecommerceWebServicess.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDto)
         {
-            // Call authentication service
-            var loginResponse = await _authService.AuthenticateAsync(loginDto);
-
-            // If credentials are invalid, return unauthorized response
-            if (loginResponse == null)
+            try
             {
-                return Unauthorized("Invalid credentials.");
+                // Call authentication service
+                var loginResponse = await _authService.AuthenticateAsync(loginDto);
+
+                // If an error message is returned, handle it
+                if (!string.IsNullOrEmpty(loginResponse.ErrorMessage))
+                {
+                    // Handle specific errors based on the error message
+                    if (loginResponse.ErrorMessage == "Invalid credentials")
+                    {
+                        return Unauthorized("Invalid email or password.");
+                    }
+                    else if (loginResponse.ErrorMessage == "Invalid password")
+                    {
+                        return Unauthorized("The password you entered is incorrect.");
+                    }
+                    else if (loginResponse.ErrorMessage == "Account is not active")
+                    {
+                        return Forbid("Your account is inactive. Please contact support.");
+                    }
+                }
+
+                // If authentication is successful, return token and user information
+                return Ok(new
+                {
+                    id = loginResponse.Id,
+                    name = loginResponse.Username,
+                    email = loginResponse.Email,
+                    token = loginResponse.Token,
+                    role = loginResponse.Role,
+                });
             }
-
-            // Return token and user information on successful login
-            return Ok(new
+            catch (Exception ex)
             {
-                id = loginResponse.Id,
-                name = loginResponse.Username,
-                email = loginResponse.Email,
-                token = loginResponse.Token,
-                role = loginResponse.Role,
-            });
+                // Log the exception (if necessary) and return a generic error message
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
         }
+
     }
 }

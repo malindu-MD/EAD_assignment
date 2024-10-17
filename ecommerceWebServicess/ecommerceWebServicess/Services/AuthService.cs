@@ -33,16 +33,23 @@ namespace ecommerceWebServicess.Services
         {
             var user = await _users.Find(u => u.Email == loginDto.Email).FirstOrDefaultAsync();
 
-            // Check if user exists, password is valid, and the account is active
-            if (user == null || !_passwordHasher.VerifyPassword(loginDto.Password, user.PasswordHash) || !user.IsActive)
+            if (user == null)
             {
-                return null;  // Invalid credentials or account not active
+                return new LoginResponseDTO { ErrorMessage = "Invalid credentials" };
             }
 
-            // Generate a JWT token for the authenticated user
+            if (!_passwordHasher.VerifyPassword(loginDto.Password, user.PasswordHash))
+            {
+                return new LoginResponseDTO { ErrorMessage = "Invalid password" };
+            }
+
+            if (!user.IsActive)
+            {
+                return new LoginResponseDTO { ErrorMessage = "Account is not active" };
+            }
+
             var token = _jwtHelper.GenerateJwtToken(user);
 
-            // Return the login response with user details and token
             return new LoginResponseDTO
             {
                 Id = user.Id.ToString(),
@@ -50,7 +57,9 @@ namespace ecommerceWebServicess.Services
                 Email = user.Email,
                 Token = token,
                 Role = user.Role,
+                ErrorMessage = null  // No errors if successful
             };
         }
+
     }
 }
