@@ -77,10 +77,9 @@ namespace ecommerceWebServicess.Controllers
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> EditCommentAndRating(string vendorId, [FromBody] AddVendorCommentDto updatedCommentDto)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null) return Unauthorized("User ID not found.");
+            
 
-            var success = await _vendorService.EditCommentAndRatingAsync(vendorId, userId, updatedCommentDto);
+            var success = await _vendorService.EditCommentAndRatingAsync(vendorId, updatedCommentDto.UserId, updatedCommentDto);
             if (!success) return NotFound($"Vendor or comment not found for Vendor ID: {vendorId}");
 
             return Ok("Comment and rating updated successfully.");
