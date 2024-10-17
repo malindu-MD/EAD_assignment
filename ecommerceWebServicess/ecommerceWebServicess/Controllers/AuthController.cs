@@ -47,7 +47,7 @@ namespace ecommerceWebServicess.Controllers
                     }
                     else if (loginResponse.ErrorMessage == "Account is not active")
                     {
-                        return Forbid("Your account is inactive. Please contact support.");
+                        return Unauthorized("Your account is inactive. Please contact support.");
                     }
                 }
 
