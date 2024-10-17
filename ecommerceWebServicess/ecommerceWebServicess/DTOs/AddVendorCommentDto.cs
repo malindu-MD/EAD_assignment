@@ -9,7 +9,7 @@
 
         public string Comment { get; set; }  // The comment text
 
-        public int Rating { get; set; }  // The rating provided (e.g., 1-5 stars)
+        public double Rating { get; set; }  // The rating provided (e.g., 1-5 stars)
 
 
     }

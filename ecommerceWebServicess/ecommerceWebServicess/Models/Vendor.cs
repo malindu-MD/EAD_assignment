@@ -43,7 +43,7 @@ namespace ecommerceWebServicess.Models
         public string Comment { get; set; }
 
         // Rating given by the user
-        public int Rating { get; set; }
+        public double Rating { get; set; }
 
         // Date the comment was posted
         public DateTime DatePosted { get; set; } = DateTime.UtcNow;
